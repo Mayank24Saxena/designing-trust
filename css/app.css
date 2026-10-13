@@ -63,7 +63,7 @@
 }
 :root[data-theme="sepia"] {
   --bg: #F6F0E4; --bg-2: #EEE6D6; --bg-3: #E6DCC8;
-  --ink: #2B2418; --ink-2: #63584A; --ink-3: #706452;
+  --ink: #2B2418; --ink-2: #63584A; --ink-3: #625644;
   --line: #E0D6C2; --line-2: #CFC2A9;
   --accent-ink: #5B36D6; --accent-fill: #ECE1F3; --figure-bg: #EFE5CF; --glass: rgba(246, 240, 228, .82);
 }
@@ -842,3 +842,29 @@ body:not(.read-mode-book) [data-only="book"], body.read-mode-book [data-only="sc
   .read-mode-book .dock-where-k { flex-direction: column; gap: 3px; font-size: 10.5px; }
   .read-mode-book .dock-where-k .ico { display: inline-block; width: 20px; height: 20px; }
 }
+
+/* ================================================================== 14 Oct (b): purple is the signal for "you can act here" / "you are here" */
+.gate-mark span { color: var(--ink-2); margin-left: 6px; }
+.gate-mark { color: var(--ink); }
+/* active tab: icon and label in the accent */
+.tab[aria-current="page"], .tab[aria-current="page"] .ico { color: var(--accent-ink); }
+/* hover: a lilac wash and accent ink on every control, minimal otherwise */
+.tool:hover, .top .tool:hover, .tab:not([aria-current]):hover { color: var(--accent-ink); background: var(--accent-fill); }
+.seg button:hover, .seg label:hover { color: var(--accent-ink); }
+.btn--secondary:hover { background: var(--accent-fill); border-color: var(--accent-ink); color: var(--accent-ink); }
+.btn--primary:hover { background: var(--accent-ink); color: var(--accent-on); }
+.home-stage-cta:hover { background: var(--accent-fill); color: var(--accent-ink); }
+.dock-where:hover { background: var(--accent-fill); }
+.dock-where:hover .dock-where-k, .dock-where:hover .dock-where-v { color: var(--accent-ink); }
+.track:hover .track-t, .route:hover .route-word { color: var(--accent-ink); }
+/* plain links: ink at rest where they sit in chrome, accent on hover */
+.home-foot a, .note-sm a, .gate a, .sheet a { transition: color var(--t1) var(--ease), text-decoration-color var(--t1) var(--ease); }
+.home-foot a { color: var(--ink); }
+.home-foot a:hover, .note-sm a:hover, .sheet a:hover, .book a:hover { color: var(--accent-ink); text-decoration-color: currentColor; }
+:root[data-theme="contrast"] .tool:hover, :root[data-theme="contrast"] .tab:not([aria-current]):hover { background: #000; color: #FFE600; outline: 1px solid #FFE600; }
+
+/* the player column scrolls on short screens: keep a slim, visible scrollbar and a soft fade so the options below are discoverable */
+.player-now { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 28%, transparent) transparent; padding-right: 6px; }
+.player-now::-webkit-scrollbar { display: block; width: 6px; }
+.player-now::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 28%, transparent); border-radius: 3px; }
+html { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }

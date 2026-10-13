@@ -90,7 +90,7 @@
   function runFirst() {
     return new Promise(function (resolve) {
       firstResolve = resolve;
-      pz.classList.add("is-first"); $("#pz-done").textContent = "Start reading";
+      pz.classList.add("is-first"); $("#pz-done").textContent = "Done";
       $("#pz-title").textContent = "Make it yours";
       syncForm(); openDialog(pz, null);
       setTimeout(function () { var f = $('input[name="theme"]:checked', pz) || $("input", pz); if (f) f.focus(); }, 80);
@@ -102,6 +102,8 @@
       pz.classList.remove("is-first"); $("#pz-title").textContent = "Personalize";
       announce(ok ? "Saved. Personalize is at the top right whenever you need it." : "Skipped. Personalize is at the top right whenever you need it.");
       var r = firstResolve; firstResolve = null; if (r) r();
+      // the first visit always lands on Home, unless a link pointed at a specific place in the book
+      if (!/^#read\/(?!book$).+/.test(bootHash)) { if (location.hash !== "#home" && location.hash !== "") location.hash = "#home"; else if (current !== "home") route(false); }
     });
   }
 
@@ -167,6 +169,7 @@
     if (r.view === "home") {
       Home.init(); window.scrollTo(0, 0); if (!initial && changed) $("#home-title").focus({ preventScroll: true });
     } else if (r.view === "read") {
+      if (S.setupDone) store("gpbook2.started", true);
       await Read.load();
       if (r.target === "book") { Read.setMode("book"); }
       else if (r.target && /^page-(\d+)$/.test(r.target)) { var pg = Number(r.target.slice(5)); if (Read.mode === "book" && Book.b) Book.goTo(pg); else { Book.pending = pg; Read.setMode("book"); } }
@@ -286,11 +289,20 @@
           });
         }
         // clicking the closed book opens Book mode
-        host.addEventListener("click", function () { location.hash = "#read/book"; });
+        host.addEventListener("click", function () { location.hash = $(".home-stage-cta").getAttribute("href") || "#read/book"; });
         host.style.cursor = "pointer";
       } catch (e) { $("#home-stage").hidden = true; }
     },
-    active: function (on) { if (this.book && this.book.setPaused) this.book.setPaused(!on); },
+    active: function (on) {
+      if (this.book && this.book.setPaused) this.book.setPaused(!on);
+      if (on) {
+        var cta = $(".home-stage-cta"), at = store("gpbook2.at"), started = store("gpbook2.started");
+        if (cta) {
+          cta.firstChild.nodeValue = started ? "Continue" : "Open the book";
+          cta.setAttribute("href", !started ? "#read/book" : (store("gpbook2.mode") === "book" ? "#read/book" : "#read" + (at ? "/" + at : "")));
+        }
+      }
+    },
     onTheme: function () { if (this.book) this.book.setTheme(themeFor3D()); }
   };
 
@@ -415,6 +427,7 @@
       if (current === "read" && history.replaceState && Date.now() > Read.holdHash) {
         var h = "#read/" + (el.id || unit.id);
         if (location.hash !== h) history.replaceState(null, "", h);
+        store("gpbook2.at", el.id || unit.id);
       }
     },
     go: async function (target, jump) {
@@ -1052,6 +1065,7 @@
   $("#t-focus").addEventListener("click", function () { Focus.set(!Focus.on); announce(Focus.on ? "Focus on. Everything but the paragraph you are reading is dimmed." : "Focus off."); });
 
   /* ================================================================ boot */
+  var bootHash = location.hash;
   async function boot() {
     apply();
     await gate();
