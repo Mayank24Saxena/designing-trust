@@ -185,7 +185,16 @@
     Dock.update();
   }
   window.addEventListener("hashchange", function () { route(false); });
-  window.addEventListener("scroll", function () { $("#top").classList.toggle("is-scrolled", scrollY > 8); }, { passive: true });
+  (function () {
+    var lastY = 0, compact = false;
+    window.addEventListener("scroll", function () {
+      var y = scrollY; $("#top").classList.toggle("is-scrolled", y > 8);
+      // slim the bar once the reader is under way; restore it near the top
+      var want = y > 120 ? (y > lastY + 2 ? true : (y < lastY - 24 ? false : compact)) : false;
+      if (want !== compact) { compact = want; root.classList.toggle("top-compact", compact); }
+      lastY = y;
+    }, { passive: true });
+  })();
 
   /* ================================================================ dock: the current view's controls */
   var Dock = {
@@ -307,7 +316,7 @@
       this.loading = Promise.all([getAsset("data/book.html", "text"), getAsset("data/toc.json", "json")]).then(function (res) {
         book.innerHTML = res[0]; book.setAttribute("aria-busy", "false"); self.toc = res[1];
         self.loaded = true; self.units = $$("section.unit", book); self.paras = $$("[data-pid]", book);
-        Contents.build(); self.lazy(); self.reveal(); self.spy(); HL.restoreAll(); self.figures();
+        self.sizeFigures(); Contents.build(); self.lazy(); self.reveal(); self.spy(); HL.restoreAll(); self.figures();
       }).catch(function (e) { book.innerHTML = '<p class="book-loading">The book could not be opened (' + esc(e.message) + ").</p>"; });
       return this.loading;
     },
@@ -330,6 +339,18 @@
       try { store("gpbook2.mode", m); } catch (e) {}
       Dock.update();
       if (user) announce(m === "book" ? "Book view. The printed pages, as an object." : "Scroll view.");
+    },
+    /* figures never taller than ~70% of the screen: tall and square images get a narrower frame, caption included */
+    sizeFigures: function () {
+      $$(".figure", book).forEach(function (f) {
+        var imgs = $$("img", f); if (!imgs.length) return;
+        var w = Number(imgs[0].getAttribute("width")), h = Number(imgs[0].getAttribute("height")); if (!w || !h) return;
+        var cols = Number((f.getAttribute("style") || "").replace(/.*--cols:\s*(\d+).*/, "$1")) || 1;
+        if (!f.classList.contains("figure--grid")) cols = 1;
+        cols = Math.min(cols, imgs.length); var rows = Math.ceil(imgs.length / cols);
+        var aspect = (w / h) * cols / rows;
+        if (aspect < 1.9) f.style.setProperty("--w", "min(100cqw, calc(var(--measure) + 9rem), " + (70 * aspect).toFixed(2) + "vh)");
+      });
     },
     pageOf: function (el) { var pm = pagemap || {}, unit = el.matches("section.unit") ? el : el.closest("section.unit"); return pm[el.id] || (unit && pm[unit.id]) || 1; },
     lazy: function () {

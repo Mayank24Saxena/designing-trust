@@ -354,9 +354,9 @@ main { min-height: 100vh; }
 .view-read { --dock-space: 120px; }
 .book { padding: 0 clamp(20px, 5vw, 64px) 40vh; min-width: 0; font-family: var(--font-body); font-size: var(--fs); line-height: var(--lh); letter-spacing: var(--ls); word-spacing: var(--ws); container-type: inline-size; overflow-x: clip; }
 .book-loading { margin: 30vh auto; text-align: center; font: 400 13px var(--mono); color: var(--ink-2); }
-.fog { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; height: 26vh; pointer-events: none; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 0%, transparent), color-mix(in srgb, var(--bg) 72%, transparent) 55%, var(--bg) 92%); }
+.fog { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; height: 13vh; pointer-events: none; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 0%, transparent), color-mix(in srgb, var(--bg) 45%, transparent) 60%, color-mix(in srgb, var(--bg) 80%, transparent)); }
 :root[data-theme="contrast"] .fog { display: none; }
-.focus-on .fog { height: 34vh; }
+.focus-on .fog { height: 20vh; }
 :root[data-motion="on"] .book .rv { opacity: 0; transform: translateY(10px); transition: opacity 520ms var(--ease), transform 520ms var(--ease); }
 :root[data-motion="on"] .book .rv.in { opacity: 1; transform: none; }
 .read-mode-book .book, .read-mode-book .fog { display: none; }
@@ -399,9 +399,9 @@ main { min-height: 100vh; }
 .tp-logo { width: min(100%, 22rem); margin-top: 2em; }
 :root[data-theme="dark"] .tp-logo, :root[data-theme="contrast"] .tp-logo { filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }
 :root[data-theme="sepia"] .tp-logo { mix-blend-mode: multiply; }
-.figure, .pullquote, .part-art, .table-wrap { --w: min(100cqw, calc(var(--measure) + 18rem)); width: var(--w); max-width: none; margin-left: calc((100% - var(--w)) / 2); margin-right: calc((100% - var(--w)) / 2); }
+.figure, .pullquote, .part-art, .table-wrap { --w: min(100cqw, calc(var(--measure) + 9rem)); width: var(--w); max-width: none; margin-left: calc((100% - var(--w)) / 2); margin-right: calc((100% - var(--w)) / 2); }
 .figure { margin-top: 3.2em; margin-bottom: 3.2em; }
-.figure--tall { --w: min(100cqw, 36rem); }
+.figure--tall { --w: min(100cqw, 31rem); }
 .figure.figure--portrait { width: min(100%, 19rem); margin-left: 0; margin-right: auto; margin-bottom: 1.4em; }
 .figure img, svg.figanim-svg { width: 100%; border-radius: 12px; background: var(--figure-bg); }
 .figure img.lazy:not(.is-loaded) { opacity: 0; }
@@ -748,3 +748,26 @@ body:not(.read-mode-book) [data-only="book"], body.read-mode-book [data-only="sc
 
 .brand-ms { display: none; font: 500 13px var(--mono); letter-spacing: .02em; }
 @media (max-width: 640px) { .brand-ms { display: inline; } }
+
+/* the top bar settles into a slimmer strip once reading starts */
+.top { transition: height var(--t3) var(--ease), border-color var(--t2) var(--ease), background-color var(--t3) var(--ease); }
+.tab, .top .tool, .brand-name, .brand-sub { transition: min-height var(--t3) var(--ease), font-size var(--t3) var(--ease), padding var(--t3) var(--ease), color var(--t1) var(--ease), background-color var(--t1) var(--ease), box-shadow var(--t1) var(--ease); }
+.tabs { transition: padding var(--t3) var(--ease); }
+.tab .ico, .top .tool .ico { transition: width var(--t3) var(--ease), height var(--t3) var(--ease); }
+.progress { transition: top var(--t3) var(--ease), transform 80ms linear; }
+@media (min-width: 641px) {
+  .top-compact .top { height: 48px; }
+  .top-compact .tabs { padding: 2px; }
+  .top-compact .tab { min-height: 32px; font-size: 13px; padding: 0 12px; }
+  .top-compact .tab .ico, .top-compact .top .tool .ico { width: 16px; height: 16px; }
+  .top-compact .top .tool { min-height: 36px; font-size: 13px; }
+  .top-compact .brand-name, .top-compact .brand-sub { font-size: 13.5px; }
+  .top-compact .progress { top: 47px; }
+}
+@media (max-width: 640px) {
+  .top-compact .top { height: 48px; }
+  .top-compact .tab { min-height: 40px; padding: 2px 8px; font-size: 10px; }
+  .top-compact .tab .ico, .top-compact .top .tool .ico { width: 16px; height: 16px; }
+  .top-compact .top .tool { min-height: 40px; font-size: 10px; }
+  .top-compact .progress { top: 47px; }
+}
