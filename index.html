@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en" data-theme="light" data-font="sans" data-spacing="default" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Designing Trust in Self-Administered Colorectal Cancer Screening · Mayank Saxena</title>
+<meta name="description" content="The digital edition of Mayank Saxena’s M.Des Universal Design graduation project at the National Institute of Design: Designing Trust in Self-Administered Colorectal Cancer Screening.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+<script>
+/* Apply saved reading settings before first paint. */
+(function(){var r=document.documentElement,s={};try{s=JSON.parse(localStorage.getItem("gpbook1.settings")||"{}")||{};}catch(e){}
+var mm=function(q){try{return matchMedia(q).matches}catch(e){return false}};
+r.dataset.theme=s.theme||(mm("(prefers-contrast: more)")?"contrast":mm("(prefers-color-scheme: dark)")?"dark":"light");
+r.dataset.font=s.font||"sans";r.dataset.spacing=s.spacing||"default";
+r.dataset.motion=(s.motion==="reduce"||(!s.motion&&mm("(prefers-reduced-motion: reduce)")))?"reduce":"on";
+if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProperty("--measure",s.measure+"ch");})();
+</script>
+<script src="js/config.js"></script>
+<script src="js/vault.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ============================================================ access gate -->
+<div id="gate" class="gate" hidden>
+  <main class="gate-inner" aria-labelledby="gate-title">
+    <h1 id="gate-title" class="visually-hidden">Designing Trust in Self-Administered Colorectal Cancer Screening: a note before you enter</h1>
+    <div class="gate-letter" id="gate-letter">
+      <p>Hello, and thank you for being here.</p>
+      <p>What’s inside is six months of my life: a small capsule, a phone, and a long question about what makes something feel safe enough to trust.</p>
+      <p>Much of it was made with people who trusted me with their stories, and with a company that let me inside a product still being born. So I keep it behind a quiet door.</p>
+      <p>If you’re holding the book, the code is on the page you scanned.</p>
+      <p>If you’re not, write to me. I would love to let you in.<br><a class="gate-mail" href="mailto:themayanksaxena@gmail.com?subject=Access%20to%20your%20graduation%20project">themayanksaxena@gmail.com</a></p>
+    </div>
+    <form id="gate-form" class="gate-form" autocomplete="off" novalidate>
+      <div class="gate-field">
+        <label class="visually-hidden" for="gate-code">Access code</label>
+        <input id="gate-code" name="code" type="text" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Access code" aria-describedby="gate-msg" required>
+        <button type="submit" class="gate-go" aria-label="Continue"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <p id="gate-msg" class="gate-msg" role="alert" aria-live="assertive"></p>
+    </form>
+    <p class="gate-foot">Mayank Saxena · M.Des Universal Design, NID 2026</p>
+  </main>
+</div>
+
+<!-- ============================================================ app -->
+<div id="app" hidden>
+<header class="bar" id="bar">
+  <a class="bar-home" href="#home"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bar-home-label">Home</span></a>
+  <p class="bar-where" id="bar-where" aria-hidden="true"></p>
+  <div class="bar-tools" id="bar-tools" role="toolbar" aria-label="Reading tools" hidden>
+    <button type="button" class="tool" id="t-aloud" aria-pressed="false" aria-controls="tts">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="tool-label">Read aloud</span></button>
+    <button type="button" class="tool" id="t-mark" aria-describedby="mark-hint">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 4.5 5 5L10 19H5v-5l9.5-9.5Z M4 21h16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <span class="tool-label">Highlight</span></button>
+    <button type="button" class="tool" id="t-hl" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4h10v16l-5-3.5L7 20V4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="tool-label">My highlights</span><span class="tool-count" id="hl-count" hidden></span></button>
+    <button type="button" class="tool" id="t-search" aria-haspopup="dialog" aria-keyshortcuts="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m20 20-4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="tool-label">Search</span></button>
+    <button type="button" class="tool" id="t-share" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="tool-label">Share</span></button>
+    <button type="button" class="tool" id="t-focus" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 8h18M3 16h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><rect x="2.75" y="10" width="18.5" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span class="tool-label">Focus</span></button>
+  </div>
+  <p id="mark-hint" class="visually-hidden">Select text in the book first, then choose Highlight, or press H.</p>
+  <button type="button" class="tool tool--settings" id="t-settings" aria-haspopup="dialog" aria-controls="settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="15" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span class="tool-label">Settings</span></button>
+</header>
+
+<main id="main" tabindex="-1">
+  <!-- ---------------------------------------------------------- home -->
+  <div class="view view-home" id="view-home" hidden>
+    <section class="home" aria-labelledby="home-title">
+      <div class="home-id">
+        <p class="home-name">Mayank Saxena</p>
+        <h1 class="home-title" id="home-title" tabindex="-1">Designing <span class="serif">Trust</span> in Self-Administered Colorectal Cancer Screening</h1>
+        <p class="home-small">Graduation Project, M.Des Universal Design, NID 2026</p>
+        <p class="home-epub"><a href="media/Mayank-GP-Book.epub" id="epub-link" download="Mayank-GP-Book.epub">Download EPUB <span id="epub-size"></span></a></p>
+      </div>
+      <nav class="choices" aria-label="Ways into the project">
+        <a class="choice" href="#read" id="choice-read">
+          <span class="choice-word">Read</span>
+          <span class="choice-sub">The digital book</span>
+          <svg class="choice-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="choice" href="#listen" id="choice-listen">
+          <span class="choice-word">Listen</span>
+          <span class="choice-sub">The audiobook <span class="soon" id="listen-soon">Coming soon</span></span>
+          <svg class="choice-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="choice" href="#watch" id="choice-watch">
+          <span class="choice-word">Watch</span>
+          <span class="choice-sub">The film and walkthrough <span class="soon" id="watch-soon">Coming soon</span></span>
+          <svg class="choice-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </nav>
+    </section>
+
+  </div>
+
+  <!-- ---------------------------------------------------------- read -->
+  <div class="view view-read" id="view-read" hidden>
+    <aside class="secnav" id="secnav" aria-label="Book menu">
+      <nav class="modes-nav" aria-label="Home, read, listen or watch">
+      <ul class="modes" role="list">
+        <li><a class="mode mode--home" href="#home"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</a></li>
+        <li><a class="mode" href="#read" aria-current="page">Read</a></li>
+        <li><a class="mode" href="#listen">Listen</a></li>
+        <li><a class="mode" href="#watch">Watch</a></li>
+      </ul>
+      </nav>
+      <nav class="secnav-scroll" aria-labelledby="secnav-head">
+        <p class="secnav-head" id="secnav-head">Contents</p>
+        <ol class="secnav-list" id="secnav-list"></ol>
+      </nav>
+    </aside>
+    <button type="button" class="rail" id="rail" aria-haspopup="dialog" aria-controls="navsheet">
+      <span class="rail-track" aria-hidden="true"><span class="rail-fill" id="rail-fill"></span></span>
+      <span class="visually-hidden">Sections</span>
+    </button>
+    <article class="book" id="book" aria-busy="true" aria-label="Designing Trust in Self-Administered Colorectal Cancer Screening, the digital book">
+      <p class="book-loading">Opening the book…</p>
+    </article>
+  </div>
+
+  <!-- ---------------------------------------------------------- listen / watch -->
+  <div class="view view-media" id="view-listen" hidden>
+    <section class="media" aria-labelledby="listen-title">
+      <h1 class="media-title" id="listen-title" tabindex="-1">Listen</h1>
+      <p class="media-sub" id="listen-sub">The book, read aloud, chapter by chapter.</p>
+      <div id="listen-body"></div>
+    </section>
+  </div>
+  <div class="view view-media" id="view-watch" hidden>
+    <section class="media" aria-labelledby="watch-title">
+      <h1 class="media-title" id="watch-title" tabindex="-1">Watch</h1>
+      <p class="media-sub" id="watch-sub">The film and walkthrough.</p>
+      <div id="watch-body"></div>
+    </section>
+  </div>
+<!-- ============================================================ highlight popover (non-modal) -->
+<div class="hlpop" id="hlpop" role="toolbar" aria-label="Highlight selection" hidden>
+  <button type="button" class="hl-sw hl-sw--1" data-color="1"><span class="visually-hidden">Highlight in lilac</span></button>
+  <button type="button" class="hl-sw hl-sw--2" data-color="2"><span class="visually-hidden">Highlight in mint</span></button>
+  <button type="button" class="hl-sw hl-sw--3" data-color="3"><span class="visually-hidden">Highlight in peach</span></button>
+  <button type="button" class="hlpop-btn" id="hlpop-note">Add note</button>
+  <button type="button" class="hlpop-btn" id="hlpop-del" hidden>Remove</button>
+</div>
+<div class="readbar" id="readbar" role="progressbar" aria-label="Position in the book" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div class="readbar-fill" id="readbar-fill"></div></div>
+</main>
+</div>
+
+<!-- ============================================================ settings (also the first-run setup) -->
+<dialog class="panel panel--settings" id="settings" aria-labelledby="settings-title">
+  <form class="settings" id="settings-form" method="dialog">
+    <div class="panel-head">
+      <h2 class="panel-title" id="settings-title">Settings</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close settings"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <p class="panel-intro setup-only">Set the book up the way you read best. You can change any of this later from the settings button, top right.</p>
+
+    <fieldset class="q">
+      <legend class="q-label">Theme</legend>
+      <div class="opts opts--4">
+        <label><input type="radio" name="theme" value="light"><span><i class="sw sw--light" aria-hidden="true"></i>Light</span></label>
+        <label><input type="radio" name="theme" value="dark"><span><i class="sw sw--dark" aria-hidden="true"></i>Dark</span></label>
+        <label><input type="radio" name="theme" value="sepia"><span><i class="sw sw--sepia" aria-hidden="true"></i>Sepia</span></label>
+        <label><input type="radio" name="theme" value="contrast"><span><i class="sw sw--contrast" aria-hidden="true"></i>High contrast</span></label>
+      </div>
+    </fieldset>
+
+    <div class="q">
+      <label class="q-label" for="set-size">Text size</label>
+      <div class="range"><span class="range-a" aria-hidden="true">A</span><input type="range" id="set-size" name="size" min="15" max="30" step="1"><span class="range-b" aria-hidden="true">A</span><output id="out-size" for="set-size"></output></div>
+      <p class="preview" id="preview">This is how the book’s text will look with these settings.</p>
+    </div>
+
+    <fieldset class="q">
+      <legend class="q-label">Typeface</legend>
+      <div class="opts opts--4">
+        <label><input type="radio" name="font" value="sans"><span class="f-sans">Sans</span></label>
+        <label><input type="radio" name="font" value="serif"><span class="f-serif">Serif</span></label>
+        <label><input type="radio" name="font" value="hyper"><span class="f-hyper">Hyperlegible</span></label>
+        <label><input type="radio" name="font" value="dyslexic"><span class="f-dys">Dyslexia-friendly</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="q">
+      <legend class="q-label">Spacing</legend>
+      <div class="opts opts--3">
+        <label><input type="radio" name="spacing" value="default"><span>Default</span></label>
+        <label><input type="radio" name="spacing" value="relaxed"><span>Relaxed</span></label>
+        <label><input type="radio" name="spacing" value="easy"><span>Easy-read</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="q">
+      <legend class="q-label">Motion</legend>
+      <div class="opts opts--2">
+        <label><input type="radio" name="motion" value="on"><span>Animations on</span></label>
+        <label><input type="radio" name="motion" value="reduce"><span>Reduce motion</span></label>
+      </div>
+    </fieldset>
+
+    <div class="q settings-only">
+      <label class="q-label" for="set-measure">Column width</label>
+      <div class="range"><span class="range-a range-a--w" aria-hidden="true">Narrow</span><input type="range" id="set-measure" name="measure" min="45" max="84" step="1"><span class="range-b range-b--w" aria-hidden="true">Wide</span><output id="out-measure" for="set-measure"></output></div>
+    </div>
+
+    <div class="panel-actions">
+      <button type="button" class="btn btn--light setup-only" id="setup-ok">OK</button>
+      <button type="button" class="btn btn--ghost setup-only" id="setup-skip">Skip</button>
+      <button type="button" class="btn btn--light settings-only" data-close>Done</button>
+      <button type="button" class="btn btn--ghost settings-only" id="settings-reset">Reset to defaults</button>
+    </div>
+    <p class="panel-note">Saved on this device only.</p>
+  </form>
+</dialog>
+
+<!-- ============================================================ search -->
+<dialog class="panel panel--side" id="search" aria-labelledby="search-title">
+  <div class="panel-head">
+    <h2 class="panel-title" id="search-title">Search</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close search"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+  <form role="search" id="search-form" class="search-form">
+    <label class="visually-hidden" for="q">Search the book</label>
+    <input id="q" type="search" placeholder="Search the book" autocomplete="off" spellcheck="false" aria-describedby="search-status" aria-controls="results">
+  </form>
+  <p class="search-status" id="search-status" role="status">Type a word or a phrase.</p>
+  <ol class="results" id="results"></ol>
+</dialog>
+
+<!-- ============================================================ highlights -->
+<dialog class="panel panel--side" id="hlpanel" aria-labelledby="hl-title">
+  <div class="panel-head">
+    <h2 class="panel-title" id="hl-title">My highlights</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close highlights"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+  <p class="panel-intro" id="hl-empty">Nothing highlighted yet. Select some text in the book, then choose a colour.</p>
+  <ol class="hl-list" id="hl-list"></ol>
+  <div class="panel-actions" id="hl-actions" hidden>
+    <button type="button" class="btn btn--light" id="hl-export">Export as text</button>
+    <button type="button" class="btn btn--ghost" id="hl-copy">Copy all</button>
+    <button type="button" class="btn btn--ghost" id="hl-clear">Clear all</button>
+  </div>
+  <p class="panel-note">Highlights and notes are saved on this device only.</p>
+</dialog>
+
+<!-- ============================================================ note editor -->
+<dialog class="panel panel--small" id="note" aria-labelledby="note-title">
+  <form method="dialog" id="note-form">
+    <h2 class="panel-title" id="note-title">Note</h2>
+    <blockquote class="note-quote" id="note-quote"></blockquote>
+    <label class="q-label" for="note-text">Your note</label>
+    <textarea id="note-text" rows="4"></textarea>
+    <div class="panel-actions">
+      <button type="submit" class="btn btn--light" value="save">Save note</button>
+      <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============================================================ sections sheet (mobile) -->
+<dialog class="panel panel--side panel--left" id="navsheet" aria-labelledby="navsheet-title">
+  <div class="panel-head">
+    <h2 class="panel-title" id="navsheet-title">Sections</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close sections"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+  <nav class="modes-nav modes-nav--sheet" aria-label="Home, read, listen or watch">
+    <ul class="modes" role="list">
+        <li><a class="mode mode--home" href="#home"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</a></li>
+        <li><a class="mode" href="#read" aria-current="page">Read</a></li>
+        <li><a class="mode" href="#listen">Listen</a></li>
+        <li><a class="mode" href="#watch">Watch</a></li>
+      </ul>
+  </nav>
+  <nav aria-labelledby="navsheet-title"><ol class="secnav-list secnav-list--sheet" id="navsheet-list"></ol></nav>
+</dialog>
+
+<!-- ============================================================ lightbox and QR -->
+<dialog class="lightbox" id="lightbox" aria-label="Enlarged figure">
+  <div class="lb-bar">
+    <button type="button" class="pill-btn" id="lb-zoom" aria-pressed="false">Actual size</button>
+    <button type="button" class="pill-btn" data-close>Close</button>
+  </div>
+  <div class="lb-stage" id="lb-stage"><img id="lb-img" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>
+  <p class="lb-cap" id="lb-cap"></p>
+</dialog>
+
+<!-- ============================================================ share a section -->
+<dialog class="panel panel--small" id="sharebox" aria-labelledby="share-title">
+  <div class="panel-head">
+    <h2 class="panel-title" id="share-title">Share a section</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+  <p class="share-where" id="share-where"></p>
+  <p class="share-url" id="share-url"></p>
+  <div class="panel-actions">
+    <button type="button" class="btn btn--light" id="share-copy">Copy link</button>
+    <button type="button" class="btn btn--ghost" id="share-native" hidden>Share…</button>
+    <button type="button" class="btn btn--ghost" id="share-qr" aria-expanded="false" aria-controls="share-qr-box">Show QR code</button>
+  </div>
+  <div class="share-qr" id="share-qr-box" hidden></div>
+  <p class="panel-note">Whoever opens the link will still need the access code.</p>
+</dialog>
+
+<!-- ============================================================ read-aloud player (non-modal) -->
+<section class="tts" id="tts" aria-label="Read aloud" hidden>
+  <button type="button" class="tts-btn" id="tts-prev" aria-label="Previous paragraph"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 6v12M18 6l-8 6 8 6V6Z" fill="currentColor"/></svg></button>
+  <button type="button" class="tts-btn tts-btn--main" id="tts-play" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="currentColor"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7L8 5Z" fill="currentColor"/></svg></button>
+  <button type="button" class="tts-btn" id="tts-next" aria-label="Next paragraph"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 6v12M6 6l8 6-8 6V6Z" fill="currentColor"/></svg></button>
+  <label class="tts-field"><span class="visually-hidden">Speed</span>
+    <select id="tts-rate"><option value="0.75">0.75×</option><option value="0.9">0.9×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option></select></label>
+  <label class="tts-field tts-field--voice"><span class="visually-hidden">Voice</span><select id="tts-voice"></select></label>
+  <button type="button" class="tts-btn" id="tts-stop" aria-label="Stop reading aloud"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+  <p class="tts-status" id="tts-status" role="status"></p>
+</section>
+
+<p class="visually-hidden" id="announce" role="status" aria-live="polite"></p>
+<script src="vendor/qrcode.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
