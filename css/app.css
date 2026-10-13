@@ -745,3 +745,6 @@ body:not(.read-mode-book) [data-only="book"], body.read-mode-book [data-only="sc
   .player-now .scrub, .player-now .transport, .player-now .player-opts, .player-now > .note-sm { grid-column: 1 / -1; }
   .player-now .scrub { margin-top: 20px; }
 }
+
+.brand-ms { display: none; font: 500 13px var(--mono); letter-spacing: .02em; }
+@media (max-width: 640px) { .brand-ms { display: inline; } }
