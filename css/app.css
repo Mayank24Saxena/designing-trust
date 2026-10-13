@@ -201,7 +201,7 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
 /* ================================================================== gate */
 .gate { position: fixed; inset: 0; z-index: 200; overflow-y: auto; background: var(--bg); padding: 0 24px; }
 .gate-inner { width: min(34rem, 100%); min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; padding: 64px 0 32px; }
-.gate-mark { display: flex; align-items: center; gap: 10px; margin: 0 0 48px; font: 400 12.5px/1 var(--mono); color: var(--ink-2); }
+.gate-mark { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; color: var(--ink-2); }
 .gate-mark i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 .gate-letter p { margin: 0 0 .7em; font-family: var(--font-display); font-weight: 300; font-size: clamp(19px, 2vw, 24px); line-height: 1.42; letter-spacing: -.012em; text-wrap: pretty; }
 .gate-letter p:first-child { font-weight: 400; }
@@ -217,7 +217,8 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
 .gate.is-wrong .gate-msg { color: #B42318; }
 :root[data-theme="dark"] .gate.is-wrong .gate-msg { color: #FDA29B; }
 .gate.is-wrong .gate-field input { border-color: #B42318; }
-.gate-foot { margin: 56px 0 0; font: 400 12px/1.5 var(--mono); color: var(--ink-3); }
+.gate-foot { margin: 56px 0 0; font: 400 12.5px/1.5 var(--mono); color: var(--ink-2); }
+.gate-foot p { margin: 0; }
 .gate.is-leaving { opacity: 0; transition: opacity var(--t3) var(--ease); }
 
 /* ================================================================== top bar: the only place for global navigation */
@@ -460,8 +461,9 @@ mark.hl.is-flash { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ------------------------------------------------------------------ listen: the player */
 .player { display: grid; grid-template-columns: minmax(280px, 440px) minmax(0, 1fr); gap: clamp(24px, 4vw, 72px); max-width: 1320px; margin: 0 auto; padding: clamp(24px, 4vw, 56px) clamp(20px, 4vw, 56px) 140px; }
-.player-now { position: sticky; top: calc(var(--top-h) + 24px); align-self: start; }
-.art { position: relative; aspect-ratio: 1; border-radius: 18px; overflow: hidden; background: #0D0D0D; color: #F2F1F5; box-shadow: var(--shadow-2); }
+.player-now { position: sticky; top: calc(var(--top-h) + 20px); align-self: start; max-height: calc(100vh - var(--top-h) - 32px); overflow-y: auto; scrollbar-width: none; }
+.player-now::-webkit-scrollbar { display: none; }
+.art { position: relative; aspect-ratio: 1; width: min(100%, 34vh); min-width: 200px; border-radius: 18px; overflow: hidden; background: #0D0D0D; color: #F2F1F5; box-shadow: var(--shadow-2); }
 .art-grain { position: absolute; inset: 0; opacity: .5; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .art-title { position: absolute; left: 8%; right: 8%; top: 8%; margin: 0; font-weight: 300; font-size: clamp(22px, 2.5vw, 32px); line-height: 1.08; letter-spacing: -.02em; }
 .art-meta { position: absolute; left: 8%; right: 8%; bottom: 7%; display: flex; justify-content: space-between; align-items: end; font: 400 11.5px/1.4 var(--mono); color: #A9A6B3; }
@@ -470,9 +472,9 @@ mark.hl.is-flash { outline: 2px solid var(--accent); outline-offset: 2px; }
 .is-playing .art-bars i { animation: eq 1.1s var(--ease) infinite alternate; }
 .is-playing .art-bars i:nth-child(2) { animation-delay: -.35s; } .is-playing .art-bars i:nth-child(3) { animation-delay: -.7s; } .is-playing .art-bars i:nth-child(4) { animation-delay: -.2s; }
 @keyframes eq { 0% { height: 4px; } 50% { height: 14px; } 100% { height: 8px; } }
-.now-k { margin: 28px 0 6px; font: 400 12.5px var(--mono); color: var(--ink-2); }
-.now-title { margin: 0; font-family: var(--font-display); font-weight: 300; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; min-height: 2.2em; }
-.scrub { margin: 22px 0 0; }
+.now-k { margin: 20px 0 6px; font: 400 12.5px var(--mono); color: var(--ink-2); }
+.now-title { margin: 0; font-family: var(--font-display); font-weight: 300; font-size: clamp(24px, 2.3vw, 32px); line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
+.scrub { margin: 16px 0 0; }
 .scrub-bar { position: relative; height: 28px; cursor: pointer; touch-action: none; }
 .scrub-bar::before { content: ""; position: absolute; left: 0; right: 0; top: 13px; height: 3px; border-radius: 3px; background: var(--line-2); }
 .scrub-fill { position: absolute; left: 0; top: 13px; height: 3px; border-radius: 3px; background: var(--ink); width: 0; }
@@ -491,7 +493,7 @@ mark.hl.is-flash { outline: 2px solid var(--accent); outline-offset: 2px; }
 .i-pause { display: none !important; }
 .is-playing .i-play { display: none !important; }
 .is-playing .i-pause { display: block !important; }
-.player-opts { display: grid; gap: 16px; margin: 26px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); }
+.player-opts { display: grid; gap: 12px; margin: 18px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); }
 .opt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .opt-row > span { font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
 .seg--sm button, .seg--sm label { min-height: 34px; padding: 0 10px; font: 500 12.5px var(--mono); }
@@ -730,3 +732,16 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .pz:not(.is-first) .first-only { display: none; }
 body:not(.read-mode-book) [data-only="book"], body.read-mode-book [data-only="scroll"] { display: none !important; }
 .soon-card p.soon-rec { font: 400 13px/1 var(--mono); letter-spacing: 0; max-width: none; color: #A9A6B3; }
+/* shorter screens: cover beside the title, so the whole player fits without scrolling */
+@media (max-height: 860px) and (min-width: 901px) {
+  .player { padding-top: 28px; }
+  .player-now { display: grid; grid-template-columns: 112px minmax(0, 1fr); column-gap: 18px; align-items: end; }
+  .player-now .art { width: 112px; min-width: 0; grid-row: 1 / 3; border-radius: 12px; }
+  .player-now .art-title { font-size: 11px; left: 10%; right: 10%; top: 10%; }
+  .player-now .art-meta { font-size: 0; }
+  .player-now .art-meta .art-bars { position: absolute; right: 0; bottom: 0; }
+  .now-k { margin: 0 0 4px; }
+  .now-title { font-size: 24px; }
+  .player-now .scrub, .player-now .transport, .player-now .player-opts, .player-now > .note-sm { grid-column: 1 / -1; }
+  .player-now .scrub { margin-top: 20px; }
+}
