@@ -95,6 +95,7 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
     <button type="button" class="tool" id="t-personalize" aria-haspopup="dialog"><svg class="ico" aria-hidden="true"><use href="#i-person"/></svg>Personalize</button>
   </div>
 </header>
+<div class="veil veil--top" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <div class="progress" id="progress" aria-hidden="true"></div>
 
 <main id="main" tabindex="-1">
@@ -132,10 +133,10 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
     <article class="book" id="book" aria-busy="true" aria-label="The book">
       <p class="book-loading">Opening the book…</p>
     </article>
-    <div class="fog" aria-hidden="true"></div>
+    <div class="fog veil veil--bottom" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <section class="stage" id="stage" aria-label="The book as an object">
       <div class="book3d-host" id="book3d" role="application" aria-roledescription="3D book" aria-label="The printed book. Use the left and right arrow keys to turn pages." aria-describedby="stage-status"></div>
-      <p class="stage-hint" id="stage-hint" aria-hidden="true"><span><b>Drag</b> a page to turn it</span><span><b>Double-click</b> to read closely</span><span><b>Drag</b> around the book to look</span></p>
+      <p class="stage-hint" id="stage-hint" aria-hidden="true"><span><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 2.5v11L13.5 8z" fill="currentColor"/></svg><b class="h-click">Click</b><b class="h-tap">Tap</b> a page to turn it</span><span><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="5.2"/><path d="M8 1.2v2.2M8 12.6v2.2M1.2 8h2.2M12.6 8h2.2" stroke-linecap="round"/></svg><b>Drag</b> anywhere to turn the book around</span></p>
       <p class="visually-hidden" id="stage-status" role="status" aria-live="polite"></p>
     </section>
     <div class="hlpop" id="hlpop" role="toolbar" aria-label="Highlight selection" hidden>
@@ -184,7 +185,7 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
       <section class="player-list" aria-labelledby="chapters-h">
         <h2 id="chapters-h">Chapters <span id="book-len"></span></h2>
         <ol class="tracks" id="tracks"></ol>
-        <p class="note-sm" style="margin-top:16px">Narrated by a synthetic voice (Kokoro, run locally). Your place is remembered on this device.</p>
+        <p class="note-sm" style="margin-top:16px">Narrated in the author’s own voice, recreated with a voice model.</p>
       </section>
     </div>
   </div>

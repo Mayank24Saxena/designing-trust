@@ -349,7 +349,11 @@
         if (!f.classList.contains("figure--grid")) cols = 1;
         cols = Math.min(cols, imgs.length); var rows = Math.ceil(imgs.length / cols);
         var aspect = (w / h) * cols / rows;
-        if (aspect < 1.9) f.style.setProperty("--w", "min(100cqw, calc(var(--measure) + 9rem), " + (70 * aspect).toFixed(2) + "vh)");
+        // figures open larger in the lightbox, so in the text they stay modest: plain panels (portraits, the QR) smallest
+        var plain = f.classList.contains("figure--plain"), vh = plain ? 30 : 50;
+        var cap = plain ? (/^qr-/.test(f.id) ? "13rem" : aspect <= 1.05 ? "10.5rem" : "20rem") : "calc(var(--measure) + 3rem)";
+        if (aspect < 2.2 || plain) f.style.setProperty("--w", "min(100cqw, " + cap + ", " + (vh * aspect).toFixed(2) + "vh)");
+        else f.style.setProperty("--w", "min(100cqw, calc(var(--measure) + 3rem))");
       });
     },
     pageOf: function (el) { var pm = pagemap || {}, unit = el.matches("section.unit") ? el : el.closest("section.unit"); return pm[el.id] || (unit && pm[unit.id]) || 1; },
@@ -517,7 +521,8 @@
       }
       window.scrollTo(0, 0);
       clearTimeout(this.hintT); $("#stage-hint").classList.remove("is-gone");
-      this.hintT = setTimeout(function () { $("#stage-hint").classList.add("is-gone"); }, 6000);
+      this.hintT = setTimeout(function () { $("#stage-hint").classList.add("is-gone"); }, 9000);
+      if (!this.hintBound) { this.hintBound = true; host.addEventListener("pointerdown", function () { clearTimeout(Book.hintT); Book.hintT = setTimeout(function () { $("#stage-hint").classList.add("is-gone"); }, 1600); }); }
     },
     pause: function () { if (this.b && this.b.setPaused) this.b.setPaused(true); },
     goTo: function (p) { if (this.b) this.b.goTo(p); else this.show(p); },

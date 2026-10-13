@@ -30,7 +30,7 @@
   --fs: 19px; --lh: 1.65; --ls: .004em; --ws: 0em; --measure: 66ch;
 
   --bg: #FFFFFF; --bg-2: #F6F5F8; --bg-3: #EEEDF2;
-  --ink: #0D0D0D; --ink-2: #55525E; --ink-3: #75727E;
+  --ink: #0D0D0D; --ink-2: #55525E; --ink-3: #6E6B77;
   --line: #E4E2EA; --line-2: #D3D0DB;
   --accent: #855FF7; --accent-ink: #6440E0; --accent-fill: #F1EDFE; --accent-on: #FFFFFF;
   --focus: #6440E0;
@@ -63,7 +63,7 @@
 }
 :root[data-theme="sepia"] {
   --bg: #F6F0E4; --bg-2: #EEE6D6; --bg-3: #E6DCC8;
-  --ink: #2B2418; --ink-2: #63584A; --ink-3: #7A6E5D;
+  --ink: #2B2418; --ink-2: #63584A; --ink-3: #706452;
   --line: #E0D6C2; --line-2: #CFC2A9;
   --accent-ink: #5B36D6; --accent-fill: #ECE1F3; --figure-bg: #EFE5CF; --glass: rgba(246, 240, 228, .82);
 }
@@ -770,4 +770,75 @@ body:not(.read-mode-book) [data-only="book"], body.read-mode-book [data-only="sc
   .top-compact .tab .ico, .top-compact .top .tool .ico { width: 16px; height: 16px; }
   .top-compact .top .tool { min-height: 40px; font-size: 10px; }
   .top-compact .progress { top: 47px; }
+}
+
+/* ================================================================== 14 Oct: quieter chrome while reading */
+/* progressive blur: four stacked backdrop layers, each masked to a band, so text dissolves gradually under the bar */
+.veil { position: fixed; left: 0; right: 0; pointer-events: none; }
+.veil i { position: absolute; inset: 0; }
+.veil--top { z-index: 59; top: 0; height: 104px; opacity: 0; transition: opacity 700ms var(--ease); }
+.veil--top::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 82%, transparent), color-mix(in srgb, var(--bg) 46%, transparent) 46%, transparent); }
+.veil--top i:nth-child(1) { backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px); -webkit-mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0 62%, transparent 100%); }
+.veil--top i:nth-child(2) { backdrop-filter: blur(2.5px); -webkit-backdrop-filter: blur(2.5px); -webkit-mask-image: linear-gradient(to bottom, #000 0 44%, transparent 76%); mask-image: linear-gradient(to bottom, #000 0 44%, transparent 76%); }
+.veil--top i:nth-child(3) { backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); -webkit-mask-image: linear-gradient(to bottom, #000 0 30%, transparent 56%); mask-image: linear-gradient(to bottom, #000 0 30%, transparent 56%); }
+.veil--top i:nth-child(4) { backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px); -webkit-mask-image: linear-gradient(to bottom, #000 0 18%, transparent 40%); mask-image: linear-gradient(to bottom, #000 0 18%, transparent 40%); }
+.veil--bottom { z-index: 40; top: auto; bottom: 0; height: 88px; background: linear-gradient(to top, color-mix(in srgb, var(--bg) 70%, transparent), color-mix(in srgb, var(--bg) 30%, transparent) 50%, transparent); }
+.veil--bottom i:nth-child(1) { backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px); -webkit-mask-image: linear-gradient(to top, #000 0 50%, transparent 100%); mask-image: linear-gradient(to top, #000 0 50%, transparent 100%); }
+.veil--bottom i:nth-child(2) { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0 34%, transparent 70%); mask-image: linear-gradient(to top, #000 0 34%, transparent 70%); }
+.veil--bottom i:nth-child(3) { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0 20%, transparent 48%); mask-image: linear-gradient(to top, #000 0 20%, transparent 48%); }
+.veil--bottom i:nth-child(4) { backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); -webkit-mask-image: linear-gradient(to top, #000 0 8%, transparent 30%); mask-image: linear-gradient(to top, #000 0 8%, transparent 30%); }
+.focus-on .fog { height: 88px; }
+:root[data-theme="contrast"] .veil { display: none; }
+
+/* compact bar: same 48px strip, slower to settle, fades back and lets the veil do the blurring */
+.top { transition: height 560ms var(--ease), border-color 560ms var(--ease), background-color 560ms var(--ease), opacity 700ms var(--ease), backdrop-filter 560ms var(--ease); }
+.tab, .top .tool, .brand-name, .brand-sub, .tabs, .tab .ico, .top .tool .ico { transition-duration: 560ms; }
+.top-compact .veil--top { opacity: 1; }
+.top-compact .top { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: transparent; opacity: .42; }
+.top-compact .top:hover, .top-compact .top:focus-within { opacity: 1; }
+:root[data-theme="contrast"].top-compact .top { opacity: 1; background: #000; }
+@media (prefers-reduced-motion: reduce) { .top, .veil--top { transition-duration: 1ms; } }
+
+/* reading progress lives at the foot of the screen, out of the way of the bar */
+.progress, .top-compact .progress { top: auto; bottom: 0; height: 2px; z-index: 61; transition: transform 80ms linear; }
+
+/* dock: fixed width for the current-section label, so it never jumps as chapters change */
+.dock-where { width: 220px; max-width: none; flex: none; }
+@media (max-width: 640px) { .dock-where { width: 132px; } }
+
+/* ================================================================== contextual cursor: a small triangle, fine pointers only */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --cur: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M5 4 L9.5 21 L21 9.5 Z' fill='%230D0D0D' stroke='%23FFFFFF' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, default;
+    --cur-act: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M5 4 L10.2 23 L23 10.2 Z' fill='%236440E0' stroke='%23FFFFFF' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, pointer;
+    --cur-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 7v18M12.5 7h7M12.5 25h7' stroke='%23FFFFFF' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3Cpath d='M16 7v18M12.5 7h7M12.5 25h7' stroke='%230D0D0D' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 16 16, text;
+    --cur-next: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M11 8 L11 24 L24 16 Z' fill='%230D0D0D' stroke='%23FFFFFF' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") 17 16, e-resize;
+    --cur-prev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M21 8 L21 24 L8 16 Z' fill='%230D0D0D' stroke='%23FFFFFF' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") 15 16, w-resize;
+    --cur-orbit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23FFFFFF' stroke-width='4'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%230D0D0D' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='1.8' fill='%230D0D0D' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E") 16 16, grab;
+    --cur-orbiting: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='5' fill='%230D0D0D' stroke='%23FFFFFF' stroke-width='1.6'/%3E%3C/svg%3E") 16 16, grabbing;
+  }
+  html, body { cursor: var(--cur); }
+  a, button, summary, select, label, [role="button"], [role="tab"], [role="option"], .zoom, .seg label, input[type="radio"], input[type="checkbox"], input[type="range"], .track, .toc a { cursor: var(--cur-act); }
+  .book p, .book li, .book h1, .book h2, .book h3, .book h4, .book blockquote, .book figcaption, .book td, .book th, input[type="text"], input[type="search"], input:not([type]), textarea { cursor: var(--cur-text); }
+  .book a, .book a * { cursor: var(--cur-act); }
+  #book3d canvas { cursor: var(--cur-orbit); }
+  #book3d canvas[data-cursor="next"] { cursor: var(--cur-next); }
+  #book3d canvas[data-cursor="prev"] { cursor: var(--cur-prev); }
+  #book3d canvas[data-cursor="orbiting"] { cursor: var(--cur-orbiting); }
+  #home-book canvas, .home-book canvas { cursor: var(--cur); }
+  button:disabled, [aria-disabled="true"] { cursor: var(--cur); }
+}
+
+/* the stage hint: one quiet line, gone after the first touch */
+.stage-hint { top: auto; bottom: 108px; gap: 22px; padding: 8px 14px; border-radius: 999px; background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 0 0 .5px var(--line-2); transition: opacity 900ms var(--ease); }
+.stage-hint span { display: inline-flex; align-items: center; gap: 6px; }
+.stage-hint svg { color: var(--ink-3); flex: none; }
+.stage-hint .h-tap { display: none; }
+@media (hover: none) { .stage-hint .h-tap { display: inline; } .stage-hint .h-click { display: none; } }
+@media (max-width: 640px) { .stage-hint { display: flex; flex-direction: column; gap: 4px; bottom: 96px; border-radius: 14px; font-size: 11px; } }
+@media (max-width: 640px) {
+  .read-mode-book .dock-where { width: 64px; align-items: center; }
+  .read-mode-book .dock-where-v { display: none; }
+  .read-mode-book .dock-where-k { flex-direction: column; gap: 3px; font-size: 10.5px; }
+  .read-mode-book .dock-where-k .ico { display: inline-block; width: 20px; height: 20px; }
 }

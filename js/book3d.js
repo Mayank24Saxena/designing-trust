@@ -88,7 +88,7 @@
     };
   }
   var EASE_UI = bezier(0.2, 0.7, 0.2, 1);      /* DESIGN.md --ease: camera flights, settles */
-  var EASE_TURN = bezier(0.33, 0.04, 0.2, 1);  /* a page is lifted, then laid down calmly  */
+  var EASE_TURN = bezier(0.36, 0.02, 0.16, 1);  /* a page is lifted, then laid down calmly  */
   var EASE_LINEAR = function (t) { return t; };
 
   /* Small deterministic PRNG so the generated textures are identical on every load. */
@@ -818,7 +818,7 @@
     function launch(i, to, t, multi) {
       var f = flightOf(i);
       var dist = Math.abs(to - pos[i]);
-      var dur = (reduced ? 140 : (i === 0 ? 820 : (multi ? 520 : 680)) * (0.45 + 0.55 * dist)) * timeScale;
+      var dur = (reduced ? 140 : (i === 0 ? 960 : (multi ? 600 : 880)) * (0.45 + 0.55 * dist)) * timeScale;
       if (f) {
         if (f.mode === 'drag') return;
         f.from = f.p; f.to = to; f.t0 = t; f.dur = dur; f.ease = reduced ? EASE_LINEAR : EASE_UI;
@@ -937,8 +937,17 @@
       if (reduced) { tween = null; cam = goalCam(); return; }
       tween = { from: Object.assign({}, cam), t0: now(), dur: 560 * timeScale };
     }
+    var spin = null;   /* orbit inertia after a flick: {vx, vy} in px/ms */
     function stepCamera(t, dt) {
-      var g = goalCam(), moving = false, i, k2;
+      var moving = false, i, k2;
+      if (spin && !reduced) {
+        view.azim = clamp(view.azim - spin.vx * dt * 0.0035, -LIM.azimMax, LIM.azimMax);
+        view.polar = clamp(view.polar - spin.vy * dt * 0.0035, LIM.polarMin, LIM.polarMax);
+        var k = Math.exp(-dt / 260); spin.vx *= k; spin.vy *= k;
+        if (Math.abs(spin.vx) + Math.abs(spin.vy) < 0.01) spin = null;
+        moving = true;
+      }
+      var g = goalCam();
       if (!cam) { cam = g; return true; }
       if (tween) {
         var u = clamp01((t - tween.t0) / tween.dur), e = EASE_UI(u);
@@ -946,7 +955,7 @@
         if (u >= 1) tween = null;
         moving = true;
       } else {
-        var a = reduced ? 1 : 1 - Math.exp(-dt / 85);
+        var a = reduced ? 1 : 1 - Math.exp(-dt / 120);
         for (i = 0; i < CAMKEYS.length; i++) {
           k2 = CAMKEYS[i];
           var dv = g[k2] - cam[k2];
@@ -980,7 +989,7 @@
       updateScene();
       applyCamera();
       renderer.render(scene, camera);
-      if (m1 || m2 || flights.length || tween) invalidate();
+      if (m1 || m2 || flights.length || tween || spin) invalidate();
       else lastFrame = 0;
     }
 
@@ -1169,11 +1178,20 @@
       if (pointers.size > 2) return;
       var orbitBtn = e.pointerType === 'mouse' && (e.button === 1 || e.button === 2);
       var hit = orbitBtn ? null : hitPage(pt.x, pt.y);
-      drag = { kind: hit ? 'pendingPage' : 'pendingOrbit', id: e.pointerId, t0: now(), x0: pt.x, y0: pt.y, lx: pt.x, ly: pt.y, hit: hit, moved: false, touch: e.pointerType !== 'mouse' };
+      spin = null; setCursor('orbiting');
+      drag = { kind: 'pendingOrbit', id: e.pointerId, t0: now(), x0: pt.x, y0: pt.y, lx: pt.x, ly: pt.y, hit: hit, moved: false, touch: e.pointerType !== 'mouse' };
       /* no preventDefault: a click focuses the (tabindex -1) canvas without a focus ring,
          and key events bubble to the container's handler */
     }
+    var curCursor = '';
+    function setCursor(c) { if (c !== curCursor) { curCursor = c; canvas.dataset.cursor = c; } }
+    function hover(cx, cy) {
+      if (drag) return;
+      var h = hitPage(cx, cy);
+      setCursor(h ? (h.side === 'R' ? (T >= TMAX ? 'orbit' : 'next') : 'prev') : 'orbit');
+    }
     function onPointerMove(e) {
+      if (!drag && e.pointerType === 'mouse') { hover(e.clientX, e.clientY); return; }
       if (!pointers.has(e.pointerId) || !drag) return;
       var pt = localXY(e);
       pointers.set(e.pointerId, pt);
@@ -1201,6 +1219,8 @@
       else if (drag.kind === 'orbit' && !zoomSide) {
         view.azim = clamp(view.azim - (pt.x - drag.lx) * 0.0035, -LIM.azimMax, LIM.azimMax);
         view.polar = clamp(view.polar - (pt.y - drag.ly) * 0.0035, LIM.polarMin, LIM.polarMax);
+        var tn = now(), dtm = Math.max(1, tn - (drag.lt || drag.t0));
+        drag.vx = 0.6 * (drag.vx || 0) + 0.4 * (pt.x - drag.lx) / dtm; drag.vy = 0.6 * (drag.vy || 0) + 0.4 * (pt.y - drag.ly) / dtm; drag.lt = tn;
         tween = null; invalidate();
       }
       drag.lx = pt.x; drag.ly = pt.y;
@@ -1213,7 +1233,9 @@
       if (drag.kind === 'pinch') { if (pointers.size < 2) drag = null; return; }
       if (e.pointerId !== drag.id) return;
       var d = drag; drag = null;
+      hover(e.clientX, e.clientY);
       if (d.kind === 'page') { releasePageDrag(d, e.type === 'pointercancel'); return; }
+      if (d.kind === 'orbit' && d.moved && !zoomSide && now() - (d.lt || 0) < 60 && Math.hypot(d.vx || 0, d.vy || 0) > 0.15) { spin = { vx: d.vx, vy: d.vy }; invalidate(); }
       if (d.moved || e.type === 'pointercancel') return;
       onTap(d.hit, d.x0, d.y0);
     }
@@ -1224,14 +1246,9 @@
         else lastTap = { t: t, x: x, y: y, hit: null };
         return;
       }
-      if (T === 0 && hit.side === 'R') { next(); lastTap = null; return; }   /* tap the cover: open */
-      if (hit.u > 0.55) { lastTap = null; if (hit.side === 'R') next(); else prev(); return; }
-      if (lastTap && lastTap.hit && lastTap.hit.side === hit.side && t - lastTap.t < 330 && Math.hypot(x - lastTap.x, y - lastTap.y) < 26) {
-        lastTap = null;
-        setZoom(zoomSide ? null : hit.side);
-        return;
-      }
-      lastTap = { t: t, x: x, y: y, hit: hit };
+      /* a click anywhere on a page turns it: right page forward, left page back */
+      lastTap = null;
+      if (hit.side === 'R') next(); else prev();
     }
     function onWheel(e) {
       if (disposed) return;
@@ -1257,6 +1274,7 @@
     function onContext(e) { e.preventDefault(); }
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerleave', function () { if (!drag) setCursor(''); });
     canvas.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('pointercancel', onPointerUp);
     canvas.addEventListener('lostpointercapture', function (e) { if (pointers.has(e.pointerId)) onPointerUp({ pointerId: e.pointerId, type: 'pointercancel' }); });

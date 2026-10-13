@@ -1,10 +1,10 @@
 window.SITE_CONFIG = {
-  "version": "2.0.0",
+  "version": "2.0.5",
   "encrypted": true,
   "indexFile": "d/i.bin",
-  "salt": "v3BYmUZI22dJrhELMSu8Gw==",
+  "salt": "rsm9JerbLb9IuAlqYHex0g==",
   "iterations": 250000,
-  "check": "q/3FWbbKtmxEQ27BSxPpkEe2BE4r/agz9QHi+PfuQgH7AMzZzF0zEbXAFEucLg==",
+  "check": "jBsZZyFAWLCr3BugzXe0eJZlkVryq5QvXCsOKC+XYnhaJNnU+gF8Pc7VG37mqA==",
   "gate": true,
   "allowBypassParam": false,
   "publicUrl": "https://mayank24saxena.github.io/designing-trust/",
