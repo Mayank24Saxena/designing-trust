@@ -926,3 +926,7 @@ html { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
 .lb-stage img, .lb-stage.is-zoomed img { max-width: 100%; max-height: calc(100vh - 160px); transform: scale(var(--s, 1)); transition: transform 380ms var(--ease), transform-origin 120ms linear; will-change: transform; }
 .lb-stage.is-zoomed { place-items: center; }
 @media (prefers-reduced-motion: reduce) { .lb-stage img { transition: none; } }
+.film-yt { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; }
+.film-yt .ico { width: 15px; height: 15px; }
+.film-yt:hover { color: var(--accent-ink); }
+.film-play { inset: 6% 4% auto auto; } @media (max-width: 640px) { .film-play { inset: 5% 4% auto auto; } }

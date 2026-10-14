@@ -312,7 +312,7 @@
     el: null, local: false,
     show: async function () {
       var v = await manifest("video"), wb = $("#watch-body");
-      if (v && v.youtube && !this.local) {
+      if (v && v.youtube && !v.src && !this.local) {
         if (wb.querySelector("iframe")) return;
         wb.innerHTML = '<figure class="film"><div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.youtube) + '?rel=0&cc_load_policy=1&modestbranding=1" title="' + esc(v.title || "Film") + '" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><figcaption class="film-cap"><span>Subtitles in many languages: use the CC and settings buttons in the player.</span>' + (v.src ? '<button type="button" class="link-btn" id="film-local">Play it here instead</button>' : '') + '</figcaption></figure>';
         var lb2 = $("#film-local"); if (lb2) lb2.addEventListener("click", function () { Watch.local = true; wb.innerHTML = ""; Watch.show(); });
@@ -321,7 +321,7 @@
       if (v && v.src) {
         if (wb.querySelector(".film")) return;
         var mins = v.duration ? Math.floor(v.duration / 60) + ":" + ("0" + Math.round(v.duration % 60)).slice(-2) : "";
-        wb.innerHTML = '<figure class="film"><div class="film-frame"><img class="film-poster" alt="" hidden><button type="button" class="film-play" id="film-play"><span class="disc"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></span><span class="film-k">Play the film</span><span class="film-v mono">' + esc(mins) + (Array.isArray(v.captions) ? ' · captions in ' + v.captions.length + ' languages' : ' · captions on') + '</span></button><p class="film-status mono" id="film-status" role="status"></p></div><figcaption class="film-cap"><span>' + esc(v.title || "Film") + '</span><span class="mono">Narrated in the author’s own voice, recreated with a voice model.</span></figcaption></figure>';
+        wb.innerHTML = '<figure class="film"><div class="film-frame"><img class="film-poster" alt="" hidden><button type="button" class="film-play" id="film-play"><span class="disc"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></span><span class="film-k">Play the film</span><span class="film-v mono">' + esc(mins) + (Array.isArray(v.captions) ? ' · captions in ' + v.captions.length + ' languages' : ' · captions on') + '</span></button><p class="film-status mono" id="film-status" role="status"></p></div><figcaption class="film-cap"><span>' + esc(v.title || "Film") + '<span class="mono"> · Narrated in the author’s own voice, recreated with a voice model.</span></span>' + (v.youtube ? '<a class="film-yt" href="https://youtu.be/' + encodeURIComponent(v.youtube) + '" target="_blank" rel="noopener">Also on YouTube<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>' : '') + '</figcaption></figure>';
         if (v.poster) getAsset(v.poster, "url").then(function (u) { var im = $(".film-poster", wb); im.src = u; im.hidden = false; }).catch(function () {});
         $("#film-play").addEventListener("click", function () { Watch.play(v); });
         return;
