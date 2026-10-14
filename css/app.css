@@ -800,7 +800,7 @@ body:not(.read-mode-book) [data-only="book"], body.read-mode-book [data-only="sc
 @media (prefers-reduced-motion: reduce) { .top, .veil--top { transition-duration: 1ms; } }
 
 /* reading progress lives at the foot of the screen, out of the way of the bar */
-.progress, .top-compact .progress { top: auto; bottom: 0; height: 2px; z-index: 61; transition: transform 80ms linear; }
+.progress, .top-compact .progress { top: auto; bottom: 0; height: 3.5px; z-index: 61; transition: transform 80ms linear; }
 
 /* dock: fixed width for the current-section label, so it never jumps as chapters change */
 .dock-where { width: 220px; max-width: none; flex: none; }
