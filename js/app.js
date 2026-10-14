@@ -26,7 +26,7 @@
     root.dataset.font = S.font;
     root.dataset.spacing = S.spacing;
     root.dataset.motion = (S.motion === "reduce" || (!S.motion && mq("(prefers-reduced-motion: reduce)"))) ? "reduce" : "on";
-    root.style.setProperty("--fs", S.size + "px");
+    root.style.setProperty("--fs", S.size + "px"); root.style.setProperty("--fsr", String(Math.round(S.size / 19 * 1000) / 1000));
     root.style.setProperty("--measure", S.measure + "ch");
     var m = $('meta[name="theme-color"]'); if (m) m.content = getComputedStyle(root).getPropertyValue("--bg").trim() || "#ffffff";
     Book.onTheme(); Home.onTheme();
@@ -991,6 +991,10 @@
     play: async function (i, user) {
       if (i == null) i = this.i < 0 ? 0 : this.i;
       AudioOwner.claim("book");
+      if (au.src && this.loadedI != null && this.loadedI !== i) {
+        // keep where the previous chapter was, then stop it before the next one opens
+        this.pos.t = this.pos.t || {}; this.pos.t[this.loadedI] = au.currentTime; au.pause();
+      }
       this.setTrack(i); this.pos.i = i; this.save();
       if (!(await this.load(i))) return;
       try { await au.play(); } catch (e) { announce("Press play to listen."); }
@@ -1032,7 +1036,8 @@
   au.addEventListener("play", function () { Player.active = true; AudioOwner.claim("book"); Player.playingUI(); });
   au.addEventListener("pause", function () { Player.playingUI(); });
   au.addEventListener("timeupdate", function () {
-    var i = Player.i; Player.paintTime(au.currentTime, au.duration);
+    var i = Player.loadedI; if (i == null || i !== Player.i) return;   // switching chapters: don't write the old chapter's time into the new one
+    Player.paintTime(au.currentTime, au.duration);
     Player.pos.t = Player.pos.t || {}; Player.pos.t[i] = au.currentTime;
     if (!Player._sv || Date.now() - Player._sv > 3000) { Player._sv = Date.now(); Player.save(); var b = $('.track[data-i="' + i + '"] .track-p i'); if (b) b.style.width = Math.min(100, au.currentTime / (au.duration || 1) * 100) + "%"; }
     if ("mediaSession" in navigator && navigator.mediaSession.setPositionState && au.duration) { try { navigator.mediaSession.setPositionState({ duration: au.duration, playbackRate: au.playbackRate, position: au.currentTime }); } catch (e) {} }

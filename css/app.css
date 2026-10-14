@@ -1197,3 +1197,28 @@ html { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
   .film-play .film-lock { width: 18px; height: 18px; }
   #view-watch .watch { padding-left: 16px; padding-right: 16px; }
 }
+
+/* ================================================================== personalize reaches the whole site, not only the book */
+/* serif also sets the headings, like the other faces do */
+:root[data-font="serif"] { --font-display: var(--serif); --w-display: 400; }
+:root[data-font="serif"] .home-title, :root[data-font="serif"] .watch-title, :root[data-font="serif"] .now-title, :root[data-font="serif"] .lh-title, :root[data-font="serif"] .rotate-t { font-family: var(--serif); font-weight: 400; letter-spacing: -.01em; }
+:root[data-font="serif"] .ch-title, :root[data-font="serif"] .part-title, :root[data-font="serif"] .fm-title, :root[data-font="serif"] .tp-title, :root[data-font="serif"] .unit h2, :root[data-font="serif"] .ch-deck { font-family: var(--serif); font-weight: 400; letter-spacing: -.01em; }
+/* the accessibility faces carry through the interface as well */
+:root[data-font="hyper"] body, :root[data-font="dyslexic"] body { font-family: var(--font-body); }
+/* text size scales the reading text elsewhere too */
+.track-t { font-size: calc(15.5px * var(--fsr, 1)); }
+.track-g { font-size: calc(12.5px * var(--fsr, 1)); }
+.route-sub { font-size: calc(14.5px * var(--fsr, 1)); }
+.watch-sub { font-size: calc(17px * var(--fsr, 1)); }
+.film-cap { font-size: calc(14.5px * var(--fsr, 1)); }
+.vp-cap span { font-size: calc(clamp(15px, 2vw, 25px) * var(--fsr, 1)); }
+.now-title { font-size: calc(clamp(24px, 2.3vw, 32px) * var(--fsr, 1)); }
+.home-meta { font-size: calc(13px * var(--fsr, 1)); }
+.note-sm { font-size: calc(12px * var(--fsr, 1)); }
+@media (max-width: 640px) { .player-now:not(.is-open) .now-title { font-size: calc(14px * var(--fsr, 1)); } .player-now.is-open .now-title { font-size: calc(26px * var(--fsr, 1)); } .lh-title { font-size: calc(28px * var(--fsr, 1)); } }
+/* a scrollbar that stays visible while reading (overlay scrollbars hide it on Mac) */
+html { scrollbar-width: auto; scrollbar-color: color-mix(in srgb, var(--ink) 34%, transparent) transparent; }
+html::-webkit-scrollbar { width: 11px; }
+html::-webkit-scrollbar-track { background: transparent; }
+html::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 6px; border: 3px solid var(--bg); }
+html::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--accent) 60%, transparent); }
