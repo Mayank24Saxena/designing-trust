@@ -422,9 +422,16 @@
       fs.addEventListener("click", function () {
         var full = doc.fullscreenElement || doc.webkitFullscreenElement;
         if (full) (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
-        else if (frame.requestFullscreen) frame.requestFullscreen(); else if (vid.webkitEnterFullscreen) vid.webkitEnterFullscreen();
+        else if (frame.requestFullscreen) frame.requestFullscreen().then(function () { if (screen.orientation && screen.orientation.lock && matchMedia("(hover: none)").matches) screen.orientation.lock("landscape").catch(function () {}); }).catch(function () {});
+        else if (vid.webkitEnterFullscreen) {
+          // iPhone: only the native player can go full screen, so hand it the chosen subtitles
+          var lang = store("gpbook2.cc"); if (lang == null) lang = "en";
+          for (var ti = 0; ti < vid.textTracks.length; ti++) vid.textTracks[ti].mode = vid.textTracks[ti].language === lang ? "showing" : "disabled";
+          vid.webkitEnterFullscreen();
+        }
       });
-      doc.addEventListener("fullscreenchange", function () { var on = doc.fullscreenElement === frame; frame.classList.toggle("is-full", on); fs.setAttribute("aria-label", on ? "Exit full screen" : "Full screen"); });
+      vid.addEventListener("webkitendfullscreen", function () { for (var ti = 0; ti < vid.textTracks.length; ti++) vid.textTracks[ti].mode = "hidden"; });
+      doc.addEventListener("fullscreenchange", function () { var on = doc.fullscreenElement === frame; if (!on) { try { screen.orientation.unlock(); } catch (e) {} } frame.classList.toggle("is-full", on); fs.setAttribute("aria-label", on ? "Exit full screen" : "Full screen"); });
       // subtitles: one language at a time, remembered
       var ccb = $(".vp-cc", frame), menu = $(".vp-menu", frame), lab = $(".vp-cc-l", frame);
       // captions are drawn by us (above the control bar), not by the browser
@@ -473,7 +480,10 @@
       if (this.loading) return this.loading;
       var self = this;
       this.loading = Promise.all([getAsset("data/book.html", "text"), getAsset("data/toc.json", "json")]).then(function (res) {
-        book.innerHTML = res[0]; book.setAttribute("aria-busy", "false"); self.toc = res[1];
+        book.innerHTML = '<p class="book-cap book-cap--start mono" aria-hidden="true"><span>The beginning</span></p>' + res[0] +
+          '<footer class="book-end"><p class="book-end-k mono">End of the book</p><p class="book-end-t">Thank you for reading.</p><div class="book-end-a"><a class="btn" href="#listen">Listen to it</a><a class="btn" href="#watch">Watch the film</a><button type="button" class="link-btn" id="book-top">Back to the beginning</button></div></footer>';
+        book.setAttribute("aria-busy", "false"); self.toc = res[1];
+        var bt = $("#book-top"); if (bt) bt.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" }); });
         self.loaded = true; self.units = $$("section.unit", book); self.paras = $$("[data-pid]", book);
         self.sizeFigures(); Contents.build(); self.lazy(); self.reveal(); self.spy(); HL.restoreAll(); self.figures();
       }).catch(function (e) { book.innerHTML = '<p class="book-loading">The book could not be opened (' + esc(e.message) + ").</p>"; });
@@ -496,7 +506,7 @@
         if (user && location.hash === "#read/book") history.replaceState(null, "", "#read");
       }
       try { store("gpbook2.mode", m); } catch (e) {}
-      Dock.update();
+      Dock.update(); if (Rotate) Rotate.check();
       if (user) announce(m === "book" ? "Book view. The printed pages, as an object." : "Scroll view.");
     },
     /* figures never taller than ~70% of the screen: tall and square images get a narrower frame, caption included */
@@ -561,6 +571,7 @@
         if (best && best !== self.cur) { self.cur = best; self.markNav(best); }
         var max = root.scrollHeight - innerHeight, p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
         $("#progress").style.transform = "scaleX(" + p.toFixed(4) + ")";
+        var dp = $("#d-pct"); if (dp) dp.textContent = Math.round(p * 100) + "%";
         Focus.update();
       }
       window.addEventListener("scroll", function () { if (!ticking && current === "read") { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
@@ -930,6 +941,7 @@
       if (!this.tracks.length) { $("#player").innerHTML = '<div class="empty">The audiobook isn’t available in this edition yet.</div>'; return; }
       var total = this.tracks.reduce(function (s, t) { return s + (t.duration || 0); }, 0);
       $("#book-len").textContent = this.tracks.length + " · " + fmtLong(total);
+      var lm = $("#lh-meta"); if (lm) lm.textContent = this.tracks.length + " chapters · " + fmtLong(total);
       var self = this;
       $("#tracks").innerHTML = this.tracks.map(function (t, i) {
         var g = t.title.match(/^(Chapter \d+|Part \d+):\s*(.+)$/), title = g ? g[2] : t.title, grp = g ? g[1] : "";
@@ -1031,6 +1043,40 @@
     if (Player.sleep === "end") { Player.setSleep(0); announce("Sleep timer: stopped at the end of the chapter."); return; }
     Player.next();
   });
+  // phones: the book is a landscape object, so ask for landscape, and fill the screen once there
+  var Rotate = {
+    mq: matchMedia("(max-width: 640px) and (orientation: portrait)"),
+    skip: false,
+    canLock: !!(screen.orientation && screen.orientation.lock) && !!root.requestFullscreen,
+    check: function () {
+      var el = $("#rotate"); if (!el) return;
+      var on = current === "read" && Read.mode === "book" && this.mq.matches && !this.skip;
+      el.hidden = !on; doc.body.classList.toggle("is-rotate", on);
+      $("#rotate-go").hidden = !this.canLock;
+    },
+    go: async function () {
+      try { await root.requestFullscreen({ navigationUI: "hide" }); await screen.orientation.lock("landscape"); } catch (e) { this.canLock = false; this.check(); }
+    }
+  };
+  try { Rotate.mq.addEventListener("change", function () { Rotate.check(); }); } catch (e) { Rotate.mq.addListener(function () { Rotate.check(); }); }
+  $("#rotate-skip").addEventListener("click", function () { Rotate.skip = true; Rotate.check(); });
+  $("#rotate-go").addEventListener("click", function () { Rotate.go(); });
+  window.addEventListener("hashchange", function () { Rotate.check(); if (current !== "read" && doc.fullscreenElement === root) { try { screen.orientation.unlock(); } catch (e) {} doc.exitFullscreen().catch(function () {}); } });
+  // phones: the player is a bar at the bottom of Listen that opens into a full "now playing" sheet
+  var PN = {
+    el: $("#player-now"),
+    open: function () { if (!this.el) return; this.el.classList.add("is-open"); root.classList.add("pn-lock"); $("#pn-open").setAttribute("aria-expanded", "true"); var c = $("#pn-close"); if (c) c.focus({ preventScroll: true }); },
+    close: function () { if (!this.el || !this.el.classList.contains("is-open")) return; this.el.classList.remove("is-open"); root.classList.remove("pn-lock"); $("#pn-open").setAttribute("aria-expanded", "false"); $("#pn-open").focus({ preventScroll: true }); }
+  };
+  if (PN.el) {
+    $("#pn-open").addEventListener("click", function () { PN.open(); });
+    $("#pn-close").addEventListener("click", function () { PN.close(); });
+    PN.el.addEventListener("keydown", function (e) { if (e.key === "Escape") PN.close(); });
+    // swipe down on the open sheet's header closes it
+    var sy = null; PN.el.addEventListener("touchstart", function (e) { if (PN.el.classList.contains("is-open") && PN.el.scrollTop <= 0 && !e.target.closest(".scrub-bar")) sy = e.touches[0].clientY; else sy = null; }, { passive: true });
+    PN.el.addEventListener("touchend", function (e) { if (sy != null && e.changedTouches[0].clientY - sy > 70) PN.close(); sy = null; }, { passive: true });
+    window.addEventListener("hashchange", function () { PN.close(); });
+  }
   // transport buttons (player + mini player share the same actions)
   doc.addEventListener("click", function (e) {
     var b = e.target.closest("[data-a]"); if (!b || !b.closest("#player, #mini")) return;
@@ -1120,6 +1166,8 @@
       pop.hidden = false;
       var pw = pop.offsetWidth, x = Math.min(Math.max(12, rect.left + rect.width / 2 - pw / 2 + scrollX), scrollX + root.clientWidth - pw - 12);
       var y = rect.top + scrollY - pop.offsetHeight - 12; if (rect.top < 140) y = rect.bottom + scrollY + 12;
+      // touch: the phone's own copy/select menu sits above the selection, so ours goes below it
+      if (matchMedia("(hover: none)").matches) { y = rect.bottom + scrollY + 18; if (rect.bottom + pop.offsetHeight + 110 > innerHeight) y = rect.top + scrollY - pop.offsetHeight - 64; }
       pop.style.left = x + "px"; pop.style.top = y + "px";
       if (focusIt) $(".hl-sw", pop).focus();
     },

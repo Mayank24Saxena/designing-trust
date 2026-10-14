@@ -61,6 +61,8 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
   <symbol id="i-unfull" viewBox="0 0 24 24"><path d="M9 4.5V9H4.5M19.5 9H15V4.5M15 19.5V15h4.5M4.5 15H9v4.5"/></symbol>
   <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3v-5ZM15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
   <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3v-5ZM16 9.5l5 5M21 9.5l-5 5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
+  <symbol id="i-rotate" viewBox="0 0 24 24"><rect x="7.5" y="3" width="9" height="18" rx="2"/><path d="M11 18h2"/></symbol>
   <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M8.5 11h5M11 8.5v5"/></symbol>
 </svg>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -143,6 +145,14 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
       <div class="book3d-host" id="book3d" role="application" aria-roledescription="3D book" aria-label="The printed book. Use the left and right arrow keys to turn pages." aria-describedby="stage-status"></div>
       <p class="stage-hint" id="stage-hint" aria-hidden="true"><span><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 2.5v11L13.5 8z" fill="currentColor"/></svg><b class="h-click">Click</b><b class="h-tap">Tap</b> a page to turn it</span><span><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="5.2"/><path d="M8 1.2v2.2M8 12.6v2.2M1.2 8h2.2M12.6 8h2.2" stroke-linecap="round"/></svg><b>Drag</b> anywhere to turn the book around</span></p>
       <p class="visually-hidden" id="stage-status" role="status" aria-live="polite"></p>
+      <div class="rotate" id="rotate" hidden>
+        <div class="rotate-card" role="dialog" aria-labelledby="rotate-t" aria-describedby="rotate-s">
+          <span class="rotate-ph" aria-hidden="true"><svg viewBox="0 0 64 64" width="72" height="72"><g class="rotate-g"><rect x="21" y="8" width="22" height="40" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M29 43h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></g><path class="rotate-arc" d="M49 30a17 17 0 0 1-9 18" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/><path class="rotate-arc" d="m37 45 3.4 3.3L44 45" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <p class="rotate-t" id="rotate-t">Turn your phone sideways</p>
+          <p class="rotate-s" id="rotate-s">The book is a wide A3 spread. Sideways, it fills the screen.</p>
+          <div class="rotate-btns"><button type="button" class="btn btn--primary" id="rotate-go" hidden>Turn it for me</button><button type="button" class="link-btn" id="rotate-skip">Keep it upright</button></div>
+        </div>
+      </div>
     </section>
     <div class="hlpop" id="hlpop" role="toolbar" aria-label="Highlight selection" hidden>
       <button type="button" class="hl-sw" data-color="1"><i style="background:#B7A1FA" aria-hidden="true"></i>Lilac</button>
@@ -158,7 +168,9 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
   <div class="view" id="view-listen" hidden>
     <h1 class="visually-hidden" id="listen-title" tabindex="-1">Listen</h1>
     <div class="player" id="player">
-      <section class="player-now" aria-label="Now playing">
+      <section class="player-now" id="player-now" aria-label="Now playing">
+        <button type="button" class="pn-open" id="pn-open" aria-label="Open the player" aria-expanded="false" aria-controls="player-now"></button>
+        <div class="pn-head"><button type="button" class="pn-close" id="pn-close"><svg class="ico" aria-hidden="true"><use href="#i-down"/></svg><span class="visually-hidden">Close the player</span></button><span class="pn-head-t mono">Now playing</span></div>
         <div class="art" aria-hidden="true"><div class="art-grain"></div><p class="art-title">Designing Trust in Self-Administered Colorectal Cancer Screening</p><div class="art-meta"><span>Mayank Saxena<br>Audiobook</span><span class="art-bars"><i></i><i></i><i></i><i></i></span></div></div>
         <p class="now-k mono" id="now-k">Not started</p>
         <h2 class="now-title" id="now-title">Press play to begin</h2>
@@ -188,6 +200,11 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
         </div>
       </section>
       <section class="player-list" aria-labelledby="chapters-h">
+        <div class="lh" aria-hidden="false">
+          <div class="lh-art" aria-hidden="true"><div class="art-grain"></div><p>Designing Trust</p><span class="art-bars"><i></i><i></i><i></i><i></i></span></div>
+          <div class="lh-txt"><p class="lh-k mono">Audiobook · Mayank Saxena</p><p class="lh-title">Designing Trust</p><p class="lh-meta mono" id="lh-meta"></p></div>
+          <button type="button" class="lh-play" data-a="toggle"><span class="disc"><svg class="ico i-play" aria-hidden="true"><use href="#i-play"/></svg><svg class="ico i-pause" aria-hidden="true"><use href="#i-pause"/></svg></span><span class="lh-play-l pt-label">Play</span></button>
+        </div>
         <h2 id="chapters-h">Chapters <span id="book-len"></span></h2>
         <ol class="tracks" id="tracks"></ol>
         <p class="note-sm" style="margin-top:16px">Narrated in the author’s own voice, recreated with a voice model.</p>
@@ -227,7 +244,7 @@ if(s.size)r.style.setProperty("--fs",s.size+"px");if(s.measure)r.style.setProper
     <span class="mini-prog" id="mini-prog" aria-hidden="true"></span>
   </section>
   <div class="dock is-away" id="dock" role="toolbar" aria-label="Reading controls" hidden>
-    <button type="button" class="dock-where" id="d-contents" aria-haspopup="dialog"><span class="dock-where-k"><svg class="ico" aria-hidden="true"><use href="#i-contents"/></svg>Contents</span><span class="dock-where-v" id="d-where">The book</span></button>
+    <button type="button" class="dock-where" id="d-contents" aria-haspopup="dialog"><span class="dock-where-k"><svg class="ico" aria-hidden="true"><use href="#i-contents"/></svg>Contents</span><span class="dock-where-v" id="d-where">The book</span><span class="dock-pct mono" id="d-pct" aria-hidden="true"></span></button>
     <span class="dock-sep" aria-hidden="true"></span>
     <div class="seg" role="group" aria-label="Reading mode">
       <button type="button" id="m-scroll" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-scroll"/></svg>Scroll</button>
