@@ -161,6 +161,7 @@
       $$(".tab").forEach(function (t) { if (t.dataset.tab === r.view) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current"); });
       doc.body.dataset.view = r.view;
       if (r.view !== "read") { TTS.stop(); Focus.set(false); HL.hidePop(); Book.pause(); }
+      if (r.view !== "watch") Watch.pause();
       Home.active(r.view === "home");
       Dock.update(); Player.updateMini();
       doc.title = ({ home: "", read: "Read · ", listen: "Listen · ", watch: "Watch · " }[r.view]) + "Designing Trust · Mayank Saxena";
@@ -269,7 +270,7 @@
       });
       var am = await manifest("audio"), vm = await manifest("video");
       if (am && am.tracks && am.tracks.length) $("#route-listen-len").textContent = am.tracks.length + " chapters · " + fmtLong(am.total_duration || am.tracks.reduce(function (s, t) { return s + (t.duration || 0); }, 0));
-      var vOn = !!(vm && vm.youtube);
+      var vOn = !!(vm && (vm.youtube || vm.src));
       $("#route-watch-soon").hidden = vOn; $("#route-watch").classList.toggle("is-soon", !vOn); $("#watch-soon-tab").hidden = vOn;
       this.mountBook();
     },
@@ -308,14 +309,52 @@
 
   /* ================================================================ watch */
   var Watch = {
+    el: null, local: false,
     show: async function () {
       var v = await manifest("video"), wb = $("#watch-body");
+      if (v && v.youtube && !this.local) {
+        if (wb.querySelector("iframe")) return;
+        wb.innerHTML = '<figure class="film"><div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.youtube) + '?rel=0&cc_load_policy=1&modestbranding=1" title="' + esc(v.title || "Film") + '" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><figcaption class="film-cap"><span>Subtitles in many languages: use the CC and settings buttons in the player.</span>' + (v.src ? '<button type="button" class="link-btn" id="film-local">Play it here instead</button>' : '') + '</figcaption></figure>';
+        var lb2 = $("#film-local"); if (lb2) lb2.addEventListener("click", function () { Watch.local = true; wb.innerHTML = ""; Watch.show(); });
+        return;
+      }
+      if (v && v.src) {
+        if (wb.querySelector(".film")) return;
+        var mins = v.duration ? Math.floor(v.duration / 60) + ":" + ("0" + Math.round(v.duration % 60)).slice(-2) : "";
+        wb.innerHTML = '<figure class="film"><div class="film-frame"><img class="film-poster" alt="" hidden><button type="button" class="film-play" id="film-play"><span class="disc"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></span><span class="film-k">Play the film</span><span class="film-v mono">' + esc(mins) + (Array.isArray(v.captions) ? ' · captions in ' + v.captions.length + ' languages' : ' · captions on') + '</span></button><p class="film-status mono" id="film-status" role="status"></p></div><figcaption class="film-cap"><span>' + esc(v.title || "Film") + '</span><span class="mono">Narrated in the author’s own voice, recreated with a voice model.</span></figcaption></figure>';
+        if (v.poster) getAsset(v.poster, "url").then(function (u) { var im = $(".film-poster", wb); im.src = u; im.hidden = false; }).catch(function () {});
+        $("#film-play").addEventListener("click", function () { Watch.play(v); });
+        return;
+      }
       if (!v || !v.youtube) {
         wb.innerHTML = '<div class="soon-card"><div class="art-grain" aria-hidden="true"></div><p class="soon-rec"><i aria-hidden="true"></i>In the edit</p><p>The film is being cut. It will play here as soon as it is ready.</p><a class="btn" href="#read">Read the book meanwhile<svg class="ico arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>';
         return;
       }
       if (!wb.querySelector("iframe")) wb.innerHTML = '<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.youtube) + '?rel=0" title="' + esc(v.title || "Film") + '" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>';
-    }
+    },
+    play: async function (v) {
+      var wb = $("#watch-body"), btn = $("#film-play"), st = $("#film-status");
+      btn.disabled = true; st.textContent = "Unlocking the film…";
+      try {
+        var url = await getAsset(v.src, "url");
+        var frame = $(".film-frame", wb), poster = $(".film-poster", wb);
+        var vid = doc.createElement("video");
+        vid.controls = true; vid.playsInline = true; vid.preload = "auto"; vid.src = url;
+        if (poster && poster.src) vid.poster = poster.src;
+        vid.crossOrigin = "anonymous";
+        if (Array.isArray(v.captions)) for (var ci = 0; ci < v.captions.length; ci++) {
+          var c = v.captions[ci];
+          try { var tu = await getAsset(c.src, "url"); var tr = doc.createElement("track"); tr.kind = "subtitles"; tr.srclang = c.lang; tr.label = c.label; tr.src = tu; if (c.default) tr.default = true; vid.appendChild(tr); } catch (e) {}
+        }
+        vid.setAttribute("aria-label", v.title || "Film");
+        vid.addEventListener("play", function () { AudioOwner.claim("video"); });
+        vid.addEventListener("pause", function () { AudioOwner.release("video"); });
+        vid.addEventListener("ended", function () { AudioOwner.release("video"); });
+        frame.innerHTML = ""; frame.appendChild(vid); this.el = vid;
+        try { await vid.play(); } catch (e) { /* the controls are there */ }
+      } catch (e) { btn.disabled = false; st.textContent = "The film could not be opened (" + e.message + ")."; }
+    },
+    pause: function () { if (this.el && !this.el.paused) this.el.pause(); }
   };
 
   /* ================================================================ read: scroll mode */
@@ -362,10 +401,12 @@
         cols = Math.min(cols, imgs.length); var rows = Math.ceil(imgs.length / cols);
         var aspect = (w / h) * cols / rows;
         // figures open larger in the lightbox, so in the text they stay modest: plain panels (portraits, the QR) smallest
-        var plain = f.classList.contains("figure--plain"), vh = plain ? 30 : 50;
-        var cap = plain ? (/^qr-/.test(f.id) ? "13rem" : aspect <= 1.05 ? "10.5rem" : "20rem") : "calc(var(--measure) + 3rem)";
-        if (aspect < 2.2 || plain) f.style.setProperty("--w", "min(100cqw, " + cap + ", " + (vh * aspect).toFixed(2) + "vh)");
-        else f.style.setProperty("--w", "min(100cqw, calc(var(--measure) + 3rem))");
+        // every figure stays inside the text column: wide ones fill it edge to edge, tall ones are capped by
+        // height and centred in it; small plain panels (portraits, the QR) sit on the text's left edge
+        var plain = f.classList.contains("figure--plain"), small = plain && (aspect <= 1.05 || /^qr-/.test(f.id));
+        f.classList.toggle("figure--small", small);
+        if (small) f.style.setProperty("--w", "min(100%, " + (/^qr-/.test(f.id) ? "13rem" : "10.5rem") + ")");
+        else f.style.setProperty("--w", plain ? "100%" : "min(100%, " + (56 * aspect).toFixed(2) + "vh)");
       });
     },
     pageOf: function (el) { var pm = pagemap || {}, unit = el.matches("section.unit") ? el : el.closest("section.unit"); return pm[el.id] || (unit && pm[unit.id]) || 1; },
@@ -462,11 +503,25 @@
     e.preventDefault();
     var img = a.querySelector("img"), cap = a.closest("figure") && a.closest("figure").querySelector("figcaption");
     lbImg.alt = img ? img.alt : ""; $("#lb-cap").innerHTML = cap ? cap.innerHTML : ""; $("#lb-cap").hidden = !cap;
-    zoomState(false); openDialog(lb, a);
+    lbImg.style.setProperty("--s", "1"); zoomState(false); openDialog(lb, a);
     lbImg.src = await getAsset(a.getAttribute("data-zoom"), "url");
   });
-  lbImg.addEventListener("click", function () { zoomState(!lbStage.classList.contains("is-zoomed")); });
-  lbZoom.addEventListener("click", function () { zoomState(!lbStage.classList.contains("is-zoomed")); });
+  // zoom into the point under the cursor, then follow the cursor while zoomed
+  var lbBase = null;
+  function lbOrigin(e) {
+    var r = lbBase || lbImg.getBoundingClientRect(); if (!r.width) return;
+    var x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    lbImg.style.transformOrigin = (x * 100).toFixed(2) + "% " + (y * 100).toFixed(2) + "%";
+  }
+  function lbScale() { var w = lbImg.getBoundingClientRect().width; return Math.max(2, Math.min(4, (lbImg.naturalWidth || 0) / Math.max(1, w))); }
+  function lbSet(on, e) {
+    if (on) { lbBase = lbImg.getBoundingClientRect(); lbImg.style.transition = "none"; if (e) lbOrigin(e); else lbImg.style.transformOrigin = "50% 50%"; void lbImg.offsetWidth; lbImg.style.transition = ""; lbImg.style.setProperty("--s", lbScale().toFixed(3)); }
+    else { lbImg.style.setProperty("--s", "1"); lbBase = null; }
+    zoomState(on);
+  }
+  lbImg.addEventListener("click", function (e) { lbSet(!lbStage.classList.contains("is-zoomed"), e); });
+  lbStage.addEventListener("pointermove", function (e) { if (lbStage.classList.contains("is-zoomed")) lbOrigin(e); });
+  lbZoom.addEventListener("click", function () { lbSet(!lbStage.classList.contains("is-zoomed")); });
   lbStage.addEventListener("click", function (e) { if (e.target === lbStage) closeDialog(lb); });
 
   /* ================================================================ contents (one list, for both modes) */
@@ -573,7 +628,7 @@
       var el = Read.cur || Read.units[0]; if (!el) return;
       var unit = el.matches("section.unit") ? el : el.closest("section.unit");
       var where = Read.labelFor(unit) + (el !== unit ? " · " + el.textContent : "");
-      this.url = linkFor("read/" + el.id); this.name = where;
+      this.url = linkFor("go/read/" + el.id); this.name = where;
       $("#share-where").textContent = where; $("#share-url").textContent = this.url;
       $("#share-qr-box").hidden = true; $("#share-qr-box").innerHTML = ""; $("#share-qr").setAttribute("aria-expanded", "false"); $("#share-qr").textContent = "Show QR code";
       $("#share-native").hidden = !navigator.share;
@@ -657,7 +712,7 @@
   var AudioOwner = {
     who: null,
     claim: function (who) {
-      if (this.who && this.who !== who) { if (this.who === "book") Player.pause(); else if (this.who === "tts") TTS.stop(); }
+      if (this.who && this.who !== who) { if (this.who === "book") Player.pause(); else if (this.who === "tts") TTS.stop(); else if (this.who === "video") Watch.pause(); }
       this.who = who;
     },
     release: function (who) { if (this.who === who) this.who = null; }
@@ -1065,6 +1120,13 @@
   $("#t-focus").addEventListener("click", function () { Focus.set(!Focus.on); announce(Focus.on ? "Focus on. Everything but the paragraph you are reading is dimmed." : "Focus off."); });
 
   /* ================================================================ boot */
+  // every new visit starts on Home; only an explicit shared link (#go/…) lands somewhere else
+  (function () {
+    var h = location.hash, fresh = true;
+    try { fresh = !sessionStorage.getItem("gpbook2.sess"); sessionStorage.setItem("gpbook2.sess", "1"); } catch (e) {}
+    if (/^#go\//.test(h)) { history.replaceState(null, "", location.pathname + location.search + "#" + h.slice(4)); }
+    else if (fresh && h && h !== "#home") { history.replaceState(null, "", location.pathname + location.search + "#home"); }
+  })();
   var bootHash = location.hash;
   async function boot() {
     apply();
@@ -1073,6 +1135,7 @@
     pageMap();
     var m = store("gpbook2.mode"); if (m === "book" && /^#read\/?$/.test(location.hash)) location.hash = "#read/book";
     await route(true);
+    manifest("video").then(function (vm) { var on = !!(vm && (vm.youtube || vm.src)); $("#watch-soon-tab").hidden = on; $("#route-watch-soon").hidden = on; $("#route-watch").classList.toggle("is-soon", !on); });
     if (!S.setupDone) await runFirst();
     if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") navigator.serviceWorker.register("sw.js").catch(function () {});
   }
