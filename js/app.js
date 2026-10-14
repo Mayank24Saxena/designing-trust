@@ -321,9 +321,10 @@
       if (v && v.src) {
         if (wb.querySelector(".film")) return;
         var mins = v.duration ? Math.floor(v.duration / 60) + ":" + ("0" + Math.round(v.duration % 60)).slice(-2) : "";
-        wb.innerHTML = '<figure class="film"><div class="film-frame"><img class="film-poster" alt="" hidden><button type="button" class="film-play" id="film-play"><span class="disc"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></span><span class="film-k">Play the film</span><span class="film-v mono">' + esc(mins) + (Array.isArray(v.captions) ? ' · captions in ' + v.captions.length + ' languages' : ' · captions on') + '</span></button><p class="film-status mono" id="film-status" role="status"></p></div><figcaption class="film-cap"><span>' + esc(v.title || "Film") + '<span class="mono"> · Narrated in the author’s own voice, recreated with a voice model.</span></span>' + (v.youtube ? '<a class="film-yt" href="https://youtu.be/' + encodeURIComponent(v.youtube) + '" target="_blank" rel="noopener">Also on YouTube<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>' : '') + '</figcaption></figure>';
+        wb.innerHTML = '<figure class="film"><div class="film-frame"><img class="film-poster" alt="" hidden><button type="button" class="film-play" id="film-play"><span class="disc"><svg class="film-ring" viewBox="0 0 60 60" aria-hidden="true"><circle class="ring-t" cx="30" cy="30" r="28"/><circle class="ring-p" cx="30" cy="30" r="28" pathLength="100"/></svg><svg class="ico i-play" aria-hidden="true"><use href="#i-play"/></svg><svg class="ico film-lock" viewBox="0 0 24 24" aria-hidden="true"><path class="lock-s" d="M8.5 11V8.2a3.5 3.5 0 0 1 7 0V11"/><rect x="6" y="11" width="12" height="9" rx="2.2"/><path class="lock-k" d="M12 14.6v1.8"/></svg></span><span class="film-k">Play the film</span><span class="film-pct mono" aria-hidden="true"></span><span class="film-v mono">' + esc(mins) + (Array.isArray(v.captions) ? ' · captions in ' + v.captions.length + ' languages' : ' · captions on') + '</span></button><p class="film-status mono" id="film-status" role="status"></p></div><figcaption class="film-cap"><span>' + esc(v.title || "Film") + '<span class="mono"> · Narrated in the author’s own voice, recreated with a voice model.</span></span>' + (v.youtube ? '<a class="film-yt" href="https://youtu.be/' + encodeURIComponent(v.youtube) + '" target="_blank" rel="noopener">Also on YouTube<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>' : '') + '</figcaption></figure>';
         if (v.poster) getAsset(v.poster, "url").then(function (u) { var im = $(".film-poster", wb); im.src = u; im.hidden = false; }).catch(function () {});
         $("#film-play").addEventListener("click", function () { Watch.play(v); });
+        Watch.prefetch(v);
         return;
       }
       if (!v || !v.youtube) {
@@ -332,27 +333,134 @@
       }
       if (!wb.querySelector("iframe")) wb.innerHTML = '<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.youtube) + '?rel=0" title="' + esc(v.title || "Film") + '" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>';
     },
+    // the film is one encrypted file: start fetching it as soon as Watch opens, and show how far along it is
+    film: null, pct: 0, open: false, decrypting: false,
+    prefetch: function (v) {
+      var save = navigator.connection && navigator.connection.saveData;
+      if (this.film || save) return this.film;
+      var self = this;
+      this.film = getAsset(v.src, "url", function (got, total) { var t = total || v.bytes || 0; if (t) { if (got >= t) self.decrypting = true; self.pct = Math.min(99, Math.floor(got / t * 100)); self.paint(); } });
+      this.film.then(function () { self.pct = 100; self.paint(); }, function () { self.film = null; });
+      return this.film;
+    },
+    paint: function () {
+      var btn = $("#film-play"); if (!btn) return;
+      var k = $(".film-k", btn), pc = $(".film-pct", btn), w = this.waiting, fr = btn.closest(".film-frame");
+      btn.style.setProperty("--p", this.pct + "%");
+      btn.style.setProperty("--pn", String(this.pct));
+      if (fr) fr.style.setProperty("--u", String(w ? this.pct / 100 : 1));
+      var ph = !w ? "" : this.open ? "open" : this.pct >= 100 || this.decrypting ? "decrypt" : "load";
+      btn.classList.toggle("is-loading", !!ph);
+      btn.classList.toggle("is-decrypting", ph === "decrypt");
+      btn.classList.toggle("is-open", ph === "open");
+      if (fr) fr.classList.toggle("is-unlocking", !!ph && ph !== "open");
+      if (!w) return;
+      k.textContent = ph === "open" ? "Unlocked" : "Unlocking the film";
+      pc.textContent = ph === "load" ? this.pct + "%" : "";
+    },
     play: async function (v) {
       var wb = $("#watch-body"), btn = $("#film-play"), st = $("#film-status");
-      btn.disabled = true; st.textContent = "Unlocking the film…";
+      if (this.waiting) return;
+      this.waiting = true; btn.setAttribute("aria-busy", "true"); st.classList.add("visually-hidden"); st.textContent = "Unlocking the film"; this.paint();
       try {
-        var url = await getAsset(v.src, "url");
+        var url = await (this.film || this.prefetch(v) || getAsset(v.src, "url"));
+        // a short beat for the lock to open, so the unlock reads as a moment rather than a glitch
+        this.pct = 100; this.open = true; this.paint();
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise(function (r) { setTimeout(r, 520); });
+        this.waiting = false; this.open = false;
         var frame = $(".film-frame", wb), poster = $(".film-poster", wb);
         var vid = doc.createElement("video");
-        vid.controls = true; vid.playsInline = true; vid.preload = "auto"; vid.src = url;
+        vid.playsInline = true; vid.preload = "auto"; vid.src = url; vid.crossOrigin = "anonymous";
         if (poster && poster.src) vid.poster = poster.src;
-        vid.crossOrigin = "anonymous";
-        if (Array.isArray(v.captions)) for (var ci = 0; ci < v.captions.length; ci++) {
-          var c = v.captions[ci];
-          try { var tu = await getAsset(c.src, "url"); var tr = doc.createElement("track"); tr.kind = "subtitles"; tr.srclang = c.lang; tr.label = c.label; tr.src = tu; if (c.default) tr.default = true; vid.appendChild(tr); } catch (e) {}
-        }
         vid.setAttribute("aria-label", v.title || "Film");
+        var caps = Array.isArray(v.captions) ? v.captions : [];
+        for (var ci = 0; ci < caps.length; ci++) {
+          try { var tu = await getAsset(caps[ci].src, "url"); var tr = doc.createElement("track"); tr.kind = "subtitles"; tr.srclang = caps[ci].lang; tr.label = caps[ci].label; tr.src = tu; if (caps[ci].default) tr.default = true; vid.appendChild(tr); } catch (e) {}
+        }
+        frame.innerHTML = "";
+        frame.appendChild(vid);
+        frame.insertAdjacentHTML("beforeend",
+          '<div class="vp" role="group" aria-label="Film controls">' +
+            '<button type="button" class="vp-play" aria-label="Pause"><span class="disc"><svg class="ico i-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="ico i-play" aria-hidden="true"><use href="#i-play"/></svg></span></button>' +
+            '<span class="vp-t mono" aria-hidden="true">0:00</span>' +
+            '<div class="vp-scrub"><div class="vp-buf"></div><div class="vp-fill"></div><input type="range" min="0" max="1000" step="1" value="0" aria-label="Seek"></div>' +
+            '<span class="vp-d mono" aria-hidden="true">' + fmt(v.duration || 0) + '</span>' +
+            '<button type="button" class="vp-btn vp-vol" aria-label="Mute"><svg class="ico i-vol" aria-hidden="true"><use href="#i-vol"/></svg><svg class="ico i-mute" aria-hidden="true"><use href="#i-mute"/></svg></button>' +
+            (caps.length ? '<div class="vp-ccw"><button type="button" class="vp-btn vp-cc" aria-haspopup="true" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-cc"/></svg><span class="vp-cc-l mono">EN</span></button><div class="vp-menu" role="menu" hidden><p class="vp-menu-h mono">Subtitles</p><button type="button" role="menuitemradio" data-l="">Off</button>' + caps.map(function (c) { return '<button type="button" role="menuitemradio" data-l="' + esc(c.lang) + '">' + esc(c.label) + '</button>'; }).join("") + '</div></div>' : '') +
+            '<button type="button" class="vp-btn vp-fs" aria-label="Full screen"><svg class="ico i-full" aria-hidden="true"><use href="#i-full"/></svg><svg class="ico i-unfull" aria-hidden="true"><use href="#i-unfull"/></svg></button>' +
+          '</div>');
+        this.el = vid; this.wire(frame, vid, caps);
         vid.addEventListener("play", function () { AudioOwner.claim("video"); });
         vid.addEventListener("pause", function () { AudioOwner.release("video"); });
         vid.addEventListener("ended", function () { AudioOwner.release("video"); });
-        frame.innerHTML = ""; frame.appendChild(vid); this.el = vid;
         try { await vid.play(); } catch (e) { /* the controls are there */ }
-      } catch (e) { btn.disabled = false; st.textContent = "The film could not be opened (" + e.message + ")."; }
+      } catch (e) { this.waiting = false; this.open = false; this.decrypting = false; this.film = null; this.paint(); btn.removeAttribute("aria-busy"); $(".film-k", btn).textContent = "Play the film"; $(".film-pct", btn).textContent = ""; st.classList.remove("visually-hidden"); st.textContent = "The film could not be opened (" + e.message + "). Try again."; }
+    },
+    wire: function (frame, vid, caps) {
+      var bar = $(".vp", frame), pb = $(".vp-play", frame), rng = $(".vp-scrub input", frame), fill = $(".vp-fill", frame), buf = $(".vp-buf", frame), tt = $(".vp-t", frame), dd = $(".vp-d", frame);
+      var seeking = false, hideT = 0;
+      function sync() {
+        frame.classList.toggle("is-playing", !vid.paused);
+        pb.setAttribute("aria-label", vid.paused ? "Play" : "Pause");
+        var d = vid.duration || 0, p = d ? vid.currentTime / d : 0;
+        if (!seeking) rng.value = String(Math.round(p * 1000));
+        fill.style.transform = "scaleX(" + p.toFixed(4) + ")";
+        tt.textContent = fmt(vid.currentTime || 0); if (d) dd.textContent = fmt(d);
+        rng.setAttribute("aria-valuetext", fmt(vid.currentTime || 0) + " of " + fmt(d));
+      }
+      function wake() { frame.classList.add("is-awake"); clearTimeout(hideT); if (!vid.paused) hideT = setTimeout(function () { var m = $(".vp-menu", frame); if (!m || m.hidden) frame.classList.remove("is-awake"); }, 2400); }
+      ["play", "pause", "loadedmetadata", "seeked", "ended"].forEach(function (ev) { vid.addEventListener(ev, function () { sync(); wake(); }); });
+      vid.addEventListener("timeupdate", sync);
+      vid.addEventListener("progress", function () { try { if (vid.buffered.length && vid.duration) buf.style.transform = "scaleX(" + (vid.buffered.end(vid.buffered.length - 1) / vid.duration).toFixed(4) + ")"; } catch (e) {} });
+      function toggle() { if (vid.paused) vid.play(); else vid.pause(); }
+      pb.addEventListener("click", toggle);
+      vid.addEventListener("click", toggle);
+      rng.addEventListener("input", function () { seeking = true; var d = vid.duration || 0; var p = Number(rng.value) / 1000; fill.style.transform = "scaleX(" + p + ")"; tt.textContent = fmt(p * d); });
+      rng.addEventListener("change", function () { var d = vid.duration || 0; vid.currentTime = Number(rng.value) / 1000 * d; seeking = false; });
+      var vb = $(".vp-vol", frame); vb.addEventListener("click", function () { vid.muted = !vid.muted; frame.classList.toggle("is-muted", vid.muted); vb.setAttribute("aria-label", vid.muted ? "Unmute" : "Mute"); });
+      var fs = $(".vp-fs", frame);
+      fs.addEventListener("click", function () {
+        var full = doc.fullscreenElement || doc.webkitFullscreenElement;
+        if (full) (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+        else if (frame.requestFullscreen) frame.requestFullscreen(); else if (vid.webkitEnterFullscreen) vid.webkitEnterFullscreen();
+      });
+      doc.addEventListener("fullscreenchange", function () { var on = doc.fullscreenElement === frame; frame.classList.toggle("is-full", on); fs.setAttribute("aria-label", on ? "Exit full screen" : "Full screen"); });
+      // subtitles: one language at a time, remembered
+      var ccb = $(".vp-cc", frame), menu = $(".vp-menu", frame), lab = $(".vp-cc-l", frame);
+      // captions are drawn by us (above the control bar), not by the browser
+      var capEl = doc.createElement("div"); capEl.className = "vp-cap"; capEl.setAttribute("aria-live", "off"); frame.insertBefore(capEl, bar);
+      function drawCue(t) { var c = t && t.activeCues && t.activeCues.length ? t.activeCues[0].text : ""; capEl.innerHTML = c ? "<span>" + esc(c).replace(/\n/g, "<br>") + "</span>" : ""; }
+      function setLang(l) {
+        for (var i = 0; i < vid.textTracks.length; i++) {
+          var t = vid.textTracks[i];
+          t.oncuechange = null;
+          if (t.language === l) { t.mode = "hidden"; t.oncuechange = (function (tk) { return function () { drawCue(tk); }; })(t); drawCue(t); capEl.lang = l; }
+          else t.mode = "disabled";
+        }
+        if (!l) capEl.innerHTML = "";
+        if (menu) $$("[data-l]", menu).forEach(function (b) { b.setAttribute("aria-checked", String(b.dataset.l === l)); });
+        if (lab) lab.textContent = l ? l.split("-")[0].toUpperCase() : "Off";
+        if (ccb) ccb.classList.toggle("is-on", !!l);
+        store("gpbook2.cc", l);
+      }
+      if (ccb) {
+        var saved = store("gpbook2.cc"); var first = caps.filter(function (c) { return c.default; })[0];
+        setTimeout(function () { setLang(saved != null ? saved : (first ? first.lang : "")); }, 60);
+        ccb.addEventListener("click", function (e) { e.stopPropagation(); var open = menu.hidden; menu.hidden = !open; ccb.setAttribute("aria-expanded", String(open)); if (open) { var c = $('[aria-checked="true"]', menu) || $("button", menu); c && c.focus(); } });
+        menu.addEventListener("click", function (e) { var b = e.target.closest("[data-l]"); if (!b) return; setLang(b.dataset.l); menu.hidden = true; ccb.setAttribute("aria-expanded", "false"); ccb.focus(); });
+        doc.addEventListener("click", function (e) { if (!menu.hidden && !e.target.closest(".vp-ccw")) { menu.hidden = true; ccb.setAttribute("aria-expanded", "false"); } });
+      }
+      frame.addEventListener("pointermove", wake); frame.addEventListener("focusin", wake);
+      frame.addEventListener("keydown", function (e) {
+        if (e.target.closest(".vp-menu")) { if (e.key === "Escape") { menu.hidden = true; ccb.focus(); } return; }
+        if (e.key === " " || e.key === "k") { if (e.target.tagName !== "BUTTON") { e.preventDefault(); toggle(); } }
+        else if (e.key === "ArrowRight" && e.target !== rng) { vid.currentTime = Math.min(vid.duration || 0, vid.currentTime + 5); }
+        else if (e.key === "ArrowLeft" && e.target !== rng) { vid.currentTime = Math.max(0, vid.currentTime - 5); }
+        else if (e.key === "f") fs.click();
+        else if (e.key === "m") vb.click();
+        wake();
+      });
+      vid.tabIndex = 0; sync(); wake();
     },
     pause: function () { if (this.el && !this.el.paused) this.el.pause(); }
   };

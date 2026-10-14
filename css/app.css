@@ -930,3 +930,107 @@ html { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
 .film-yt .ico { width: 15px; height: 15px; }
 .film-yt:hover { color: var(--accent-ink); }
 .film-play { inset: 6% 4% auto auto; } @media (max-width: 640px) { .film-play { inset: 5% 4% auto auto; } }
+
+/* ================================================================== film player: same family as the audiobook player */
+.film-frame { background: #0D0D0D; }
+.film-frame video { cursor: pointer; }
+.film-frame video::cue { font-family: "Inter Tight", "Noto Sans", system-ui, sans-serif; font-weight: 400; font-size: clamp(15px, 2.1vw, 26px); line-height: 1.35; color: #F2F1F5; background: rgba(13, 13, 13, .78); }
+.vp { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 18px; background: rgba(13, 13, 13, .72); backdrop-filter: saturate(1.4) blur(16px); -webkit-backdrop-filter: saturate(1.4) blur(16px); color: #F2F1F5; box-shadow: 0 0 0 .5px rgba(255, 255, 255, .12); transition: opacity 420ms var(--ease), transform 420ms var(--ease); }
+.film-frame.is-playing:not(.is-awake) .vp { opacity: 0; transform: translateY(8px); pointer-events: none; }
+.film-frame.is-playing:not(.is-awake) video { cursor: none; }
+.vp-play .disc { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--accent-ink); color: #fff; transition: transform var(--t2) var(--ease), box-shadow var(--t2) var(--ease); }
+.vp-play:hover .disc { box-shadow: 0 0 0 5px rgba(133, 95, 247, .28); }
+.vp-play .ico { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+.vp-play .i-pause { display: none; } .is-playing .vp-play .i-pause { display: block; } .is-playing .vp-play .i-play { display: none; }
+.vp-t, .vp-d { font-size: 12.5px; color: #C9C6D2; min-width: 38px; text-align: center; }
+.vp-scrub { position: relative; flex: 1; height: 28px; display: flex; align-items: center; }
+.vp-scrub::before, .vp-buf, .vp-fill { content: ""; position: absolute; left: 0; right: 0; height: 4px; border-radius: 2px; transform-origin: 0 50%; }
+.vp-scrub::before { background: rgba(255, 255, 255, .16); }
+.vp-buf { background: rgba(255, 255, 255, .28); transform: scaleX(0); }
+.vp-fill { background: #A78BFA; transform: scaleX(0); }
+.vp-scrub input { position: absolute; inset: 0; width: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.vp-scrub:has(input:focus-visible)::after { content: ""; position: absolute; inset: 4px -4px; border-radius: 8px; box-shadow: 0 0 0 2px #C4B5FD; }
+.vp-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 40px; min-height: 40px; justify-content: center; padding: 0 8px; border-radius: 10px; color: #E4E2EA; transition: background-color var(--t1) var(--ease), color var(--t1) var(--ease); }
+.vp-btn:hover { background: rgba(167, 139, 250, .16); color: #fff; }
+.vp-btn .ico { width: 20px; height: 20px; }
+.vp-vol .i-mute, .is-muted .vp-vol .i-vol { display: none; } .is-muted .vp-vol .i-mute { display: block; }
+.vp-fs .i-unfull, .is-full .vp-fs .i-full { display: none; } .is-full .vp-fs .i-unfull { display: block; }
+.vp-cc.is-on { color: #C4B5FD; }
+.vp-cc-l { font-size: 11.5px; letter-spacing: .03em; }
+.vp-ccw { position: relative; }
+.vp-menu { position: absolute; right: 0; bottom: calc(100% + 10px); min-width: 210px; padding: 8px; border-radius: 14px; background: rgba(13, 13, 13, .92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 0 0 .5px rgba(255, 255, 255, .14), 0 12px 32px rgba(0, 0, 0, .35); }
+.vp-menu-h { margin: 4px 10px 6px; font-size: 11.5px; color: #A9A6B3; }
+.vp-menu button { display: flex; width: 100%; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 9px; font-size: 14px; color: #E4E2EA; text-align: left; }
+.vp-menu button:hover { background: rgba(167, 139, 250, .16); }
+.vp-menu button[aria-checked="true"] { color: #C4B5FD; background: rgba(167, 139, 250, .14); }
+.vp-menu button[aria-checked="true"]::after { content: ""; margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: #A78BFA; }
+.film-frame.is-full { border-radius: 0; }
+.film-frame.is-full .vp { left: 24px; right: 24px; bottom: 24px; }
+@media (max-width: 640px) { .vp { left: 8px; right: 8px; bottom: 8px; gap: 6px; padding: 6px 8px 6px 6px; } .vp-play .disc { width: 36px; height: 36px; } .vp-d, .vp-vol { display: none; } }
+@media (prefers-reduced-motion: reduce) { .vp { transition: none; } }
+.vp-cap { position: absolute; left: 6%; right: 6%; bottom: 92px; text-align: center; pointer-events: none; transition: bottom 420ms var(--ease); }
+.film-frame.is-playing:not(.is-awake) .vp-cap { bottom: 28px; }
+.vp-cap span { display: inline; padding: .18em .5em; border-radius: 8px; background: rgba(13, 13, 13, .78); color: #F2F1F5; font-family: "Inter Tight", "Noto Sans", "Noto Sans Devanagari", "Noto Sans Tamil", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; font-size: clamp(15px, 2vw, 25px); line-height: 1.55; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+@media (max-width: 640px) { .vp-cap { bottom: 62px; } .film-frame.is-playing:not(.is-awake) .vp-cap { bottom: 14px; } }
+/* loading: the pill fills with the download, so a click is never left unanswered */
+.film-play { overflow: hidden; }
+.film-play.is-loading::before { content: ""; position: absolute; inset: 0; width: var(--p, 0%); background: color-mix(in srgb, var(--accent) 16%, transparent); transition: width 200ms linear; }
+.film-play > * { position: relative; }
+.film-play.is-loading .disc { animation: filmPulse 1.2s var(--ease) infinite alternate; }
+@keyframes filmPulse { from { box-shadow: 0 0 0 0 var(--hover); } to { box-shadow: 0 0 0 8px var(--hover); } }
+@media (prefers-reduced-motion: reduce) { .film-play.is-loading .disc { animation: none; } }
+.film-play { inset: auto 4% 6% auto; }
+.film-play.is-loading .film-v { display: none; }
+@media (max-width: 640px) { .film-play { inset: auto 4% 5% auto; } }
+/* unlocking: on play, the disc turns into a lock with a ring that fills as the encrypted film arrives,
+   the poster comes into focus with it, and the shackle opens just before the film starts */
+.film-play .disc { position: relative; }
+.film-ring { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); transform: rotate(-90deg); opacity: 0; transition: opacity var(--t2) var(--ease); pointer-events: none; overflow: visible; }
+.film-ring circle { fill: none; stroke-width: 2.5; }
+.film-ring .ring-t { stroke: color-mix(in srgb, var(--accent) 22%, transparent); }
+.film-ring .ring-p { stroke: var(--accent-ink); stroke-linecap: round; stroke-dasharray: 100 100; stroke-dashoffset: calc(100 - var(--pn, 0)); transition: stroke-dashoffset 260ms linear; }
+.film-play .disc .film-lock { position: absolute; width: 22px; height: 22px; margin: 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(.6); transition: opacity 220ms var(--ease), transform 320ms var(--ease); }
+.film-lock .lock-s { transform-origin: 15.5px 11px; transition: transform 380ms cubic-bezier(.3, 1.6, .5, 1); }
+.film-play .disc .i-play { transition: opacity 180ms var(--ease), transform 260ms var(--ease); }
+.film-play.is-loading .disc { animation: none; }
+.film-play.is-loading .film-ring { opacity: 1; }
+.film-play.is-loading .disc .i-play { opacity: 0; transform: scale(.5); }
+.film-play.is-loading .disc .film-lock { opacity: 1; transform: none; }
+.film-play.is-loading::before { display: none; }
+.film-play.is-decrypting .film-ring { animation: filmSpin 1s linear infinite; }
+.film-play.is-decrypting .ring-p { stroke-dashoffset: 72; transition: none; }
+.film-play.is-open .film-lock .lock-s { transform: translateY(-2.6px) rotate(28deg); }
+.film-play.is-open .disc { box-shadow: 0 0 0 8px var(--hover); }
+.film-play.is-open .ring-p { stroke-dashoffset: 0; }
+@keyframes filmSpin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+.film-pct { min-width: 0; font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.film-pct:empty { display: none; }
+.film-play.is-loading { cursor: progress; }
+.film-play.is-loading:hover .disc { transform: none; }
+.film-poster { transition: filter 600ms var(--ease), transform 600ms var(--ease); }
+.film-frame.is-unlocking .film-poster { filter: blur(calc((1 - var(--u, 1)) * 8px + 2px)) brightness(.82); transform: scale(1.03); }
+@media (prefers-reduced-motion: reduce) {
+  .film-play.is-decrypting .film-ring { animation: none; }
+  .film-poster, .film-lock .lock-s, .film-ring .ring-p { transition: none; }
+  .film-frame.is-unlocking .film-poster { transform: none; }
+}
+
+/* one screen: when everything fits, nothing scrolls. Watch sizes the film to the space left under the heading */
+@media (min-width: 641px) and (min-height: 520px) {
+  #view-watch .watch { box-sizing: border-box; height: calc(100svh - var(--top-h)); display: flex; flex-direction: column; padding-top: clamp(20px, 4.5vh, 64px); padding-bottom: clamp(20px, 4vh, 48px); }
+  #view-watch .watch-title { font-size: clamp(40px, min(6vw, 8.5vh), 92px); }
+  #view-watch .watch-sub { margin: 14px 0 clamp(16px, 3.5vh, 40px); }
+  #watch-body { flex: 1; min-height: 0; container-type: size; }
+  #watch-body .film { margin: 0; width: min(100cqw, (100cqh - 84px) * 16 / 9); }
+}
+/* Home on short laptop screens: tighten, so the routes sit on the first screen */
+@media (min-width: 901px) and (max-height: 860px) {
+  .home { padding-top: clamp(12px, 2.5vh, 40px); padding-bottom: 20px; }
+  .home-text { padding: 1vh 0; }
+  .home-title { font-size: clamp(40px, min(5.1vw, 9.6vh), 84px); }
+  .home-meta { margin-top: clamp(16px, 3vh, 32px); }
+}
+@media (min-width: 901px) and (max-height: 860px) {
+  .routes { margin-top: clamp(12px, 2.5vh, 32px); }
+  .route { padding-top: clamp(14px, 2.4vh, 22px); padding-bottom: clamp(14px, 2.6vh, 26px); }
+}

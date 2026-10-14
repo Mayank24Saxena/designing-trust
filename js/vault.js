@@ -57,23 +57,32 @@
      its own file ({files: {path: "a/01.bin"}}) or to a slice of a pack ({packs: {path: [file, offset, length]}}).
      Every entry, and every slice, is IV || AES-GCM ciphertext on its own. Packs are fetched once and kept. */
   var indexP = null, packs = {};
-  async function fetchBuf(file) { var r = await fetch(file); if (!r.ok) throw new Error(file + " " + r.status); return r.arrayBuffer(); }
+  async function fetchBuf(file, prog) {
+    var r = await fetch(file); if (!r.ok) throw new Error(file + " " + r.status);
+    var total = Number(r.headers.get("content-length")) || 0;
+    if (!prog || !r.body || !r.body.getReader) return r.arrayBuffer();
+    var rd = r.body.getReader(), parts = [], got = 0;
+    for (;;) { var c = await rd.read(); if (c.done) break; parts.push(c.value); got += c.value.length; try { prog(got, total); } catch (e) {} }
+    var out = new Uint8Array(got), o = 0; for (var i = 0; i < parts.length; i++) { out.set(parts[i], o); o += parts[i].length; }
+    return out.buffer;
+  }
   function loadIndex() {
     if (!indexP) indexP = fetchBuf(CFG.indexFile).then(function (b) { return decrypt(key, b); })
       .then(function (p) { return JSON.parse(new TextDecoder().decode(p)); })
       .catch(function (e) { indexP = null; throw e; });
     return indexP;
   }
-  async function packedBytes(path) {
+  async function packedBytes(path, prog) {
     var idx = await loadIndex(), p = idx.packs[path];
     if (p) {
       if (!packs[p[0]]) packs[p[0]] = fetchBuf(p[0]).catch(function (e) { delete packs[p[0]]; throw e; });
       var buf = await packs[p[0]]; return new Uint8Array(buf, p[1], p[2]);
     }
     var f = idx.files[path]; if (!f) throw new Error("Not in this edition: " + path);
-    return fetchBuf(f);
+    return fetchBuf(f, prog);
   }
 
+  var inflight = {};
   var Vault = {
     get unlocked() { return !!key; },
     /* Try the key remembered on this device. */
@@ -97,9 +106,17 @@
     forget: function () { key = null; try { localStorage.removeItem(KEY_STORE); } catch (e) {} },
 
     /* getAsset(path, as): as = "text" | "json" | "blob" | "url" */
-    getAsset: async function (path, as) {
+    getAsset: function (path, as, prog) {
       as = as || "text";
-      if (as === "url" && urlCache[path]) return urlCache[path];
+      if (as === "url" && urlCache[path]) return Promise.resolve(urlCache[path]);
+      var k = path + "|" + as;
+      if (as === "url" && inflight[k]) { if (prog) inflight[k].progs.push(prog); return inflight[k].p; }
+      var progs = prog ? [prog] : [], fan = function (a, b) { progs.forEach(function (f) { f(a, b); }); };
+      var p = Vault._get(path, as, fan);
+      if (as === "url") { inflight[k] = { p: p, progs: progs }; p.then(function () { delete inflight[k]; }, function () { delete inflight[k]; }); }
+      return p;
+    },
+    _get: async function (path, as, prog) {
       if (!CFG.encrypted) {
         if (as === "url") return (urlCache[path] = path);           // plain build: the file itself
         if (isFile && as !== "blob") {
@@ -112,13 +129,13 @@
       }
       if (!key || key === "bypass") throw new Error("locked");
       var bytes;
-      if (CFG.indexFile) bytes = await packedBytes(path);       // publish build: neutral file names + packs
+      if (CFG.indexFile) bytes = await packedBytes(path, prog);       // publish build: neutral file names + packs
       else if (isFile) { var ww = await loadWrapper(path); bytes = b64ToBytes(ww.data); }
       else { var rr = await fetch(path + ".enc"); if (!rr.ok) throw new Error(path + " " + rr.status); bytes = await rr.arrayBuffer(); }
       var plainBuf = await decrypt(key, bytes);
       if (as === "text") return new TextDecoder().decode(plainBuf);
       if (as === "json") return JSON.parse(new TextDecoder().decode(plainBuf));
-      var type = /\.mp3$/.test(path) ? "audio/mpeg" : /\.webp$/.test(path) ? "image/webp" : /\.jpe?g$/.test(path) ? "image/jpeg" : /\.epub$/.test(path) ? "application/epub+zip" : "application/octet-stream";
+      var type = /\.mp4$/.test(path) ? "video/mp4" : /\.vtt$/.test(path) ? "text/vtt" : /\.mp3$/.test(path) ? "audio/mpeg" : /\.webp$/.test(path) ? "image/webp" : /\.jpe?g$/.test(path) ? "image/jpeg" : /\.epub$/.test(path) ? "application/epub+zip" : "application/octet-stream";
       var blob = new Blob([plainBuf], { type: type });
       if (as === "blob") return blob;
       if (/\.(mp3|epub)$/.test(path)) return URL.createObjectURL(blob);   // large: caller revokes, not cached
